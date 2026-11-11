@@ -1,6 +1,6 @@
 [package]
 name = "furet"
-version = "1.0.0"
+version = "0.9.0"
 description = "Retrouve n'importe quel fichier par ce qu'il contient ou par son nom, entièrement sur le PC."
 authors = ["Furet contributors"]
 edition.workspace = true
@@ -31,6 +31,7 @@ tauri-plugin-dialog = "2"
 tauri-plugin-clipboard-manager = "2.5.0"
 tauri-plugin-autostart = "2.7.0"
 tauri-plugin-updater = "2.14.1"
+sys-locale = "0.3.2"
 
 # Même version que celle de Tauri, pour que les types HWND correspondent.
 [target.'cfg(windows)'.dependencies]

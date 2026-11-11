@@ -245,3 +245,25 @@
   font-size: 11px;
   color: var(--text-3);
 }
+
+/* Le choix de la langue : trois boutons côte à côte. */
+.regl-choix {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: #1e1e22;
+}
+
+.regl-choix-bouton {
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 12px !important;
+  font-weight: 600;
+  color: var(--text-2) !important;
+}
+
+.regl-choix-bouton--on {
+  background: #3a3a3f !important;
+  color: var(--text-1) !important;
+}

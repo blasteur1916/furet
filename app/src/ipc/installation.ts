@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
+import { nombre, tr } from "../i18n";
 
 /** Miroir de `Etat` dans `src-tauri/src/installation.rs`. */
 export type EtatInstallation =
@@ -57,6 +58,6 @@ export function useInstallation(): EtatInstallation | null {
 
 /** « 1,1 Go », « 340 Mo » */
 export function taille(octets: number): string {
-  if (octets >= 1e9) return `${(octets / 1e9).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} Go`;
-  return `${Math.max(1, Math.round(octets / 1e6)).toLocaleString("fr-FR")} Mo`;
+  if (octets >= 1e9) return `${nombre(octets / 1e9, { maximumFractionDigits: 1 })} ${tr("Go", "GB")}`;
+  return `${nombre(Math.max(1, Math.round(octets / 1e6)))} ${tr("Mo", "MB")}`;
 }

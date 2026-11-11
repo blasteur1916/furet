@@ -87,6 +87,7 @@ pub fn run() {
             installation::etat_installation,
             installation::installer,
             raccourci::raccourci_actuel,
+            reglages::langue,
             mises_a_jour::mise_a_jour_prete,
             mises_a_jour::installer_mise_a_jour,
             apercus::apercu,

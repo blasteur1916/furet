@@ -3,6 +3,7 @@ import { installer, raccourciActuel, taille, useInstallation } from "../ipc/inst
 import { ajouterDossier, ecrireReglages, lireReglages, retirerDossier, type Reglages as R } from "../ipc/reglages";
 import { dossierCourt } from "../barre/texte";
 import { Interrupteur } from "../reglages/Reglages";
+import { tr } from "../i18n";
 import "../reglages/reglages.css";
 import "./accueil.css";
 
@@ -61,24 +62,26 @@ export function Accueil({ onFini, onHauteur }: { onFini(): void; onHauteur(h: nu
   return (
     <div className="regl accueil" ref={racine}>
       <div className="accueil-tete">
-        <span className="accueil-titre">Bienvenue dans Furet</span>
+        <span className="accueil-titre">{tr("Bienvenue dans Furet", "Welcome to Furet")}</span>
         <span className="accueil-texte">
-          Retrouve n'importe quel fichier par son nom ou par ce qu'il contient : photos, PDF, documents, vidéos,
-          sons… Tout reste sur ce PC : rien n'est envoyé sur internet.
+          {tr(
+            "Retrouve n'importe quel fichier par son nom ou par ce qu'il contient : photos, PDF, documents, vidéos, sons… Tout reste sur ce PC : rien n'est envoyé sur internet.",
+            "Find any file by its name or by what's inside: photos, PDFs, documents, videos, audio… Everything stays on this PC: nothing is sent to the internet.",
+          )}
         </span>
       </div>
 
       {!pret && phase !== "telechargement" && reglages && (
         <>
           <div className="regl-section">
-            <div className="regl-sous-titre">Dossiers à explorer</div>
+            <div className="regl-sous-titre">{tr("Dossiers à explorer", "Folders to explore")}</div>
             <div className="regl-dossiers">
               {reglages.dossiers.map((d) => (
                 <div key={d} className="regl-dossier" title={d}>
                   <span className="regl-dossier-nom">{dossierCourt(d, 64)}</span>
                   <button
                     className="regl-retirer"
-                    aria-label={`Retirer ${d}`}
+                    aria-label={`${tr("Retirer", "Remove")} ${d}`}
                     onClick={() => retirerDossier(d).then(setReglages).catch(ignorer)}
                   >
                     ×
@@ -87,7 +90,7 @@ export function Accueil({ onFini, onHauteur }: { onFini(): void; onHauteur(h: nu
               ))}
             </div>
             <button className="regl-ajouter" onClick={ajouter}>
-              + Ajouter un dossier
+              + {tr("Ajouter un dossier", "Add a folder")}
             </button>
             {erreur && <div className="regl-erreur">{erreur}</div>}
           </div>
@@ -95,19 +98,19 @@ export function Accueil({ onFini, onHauteur }: { onFini(): void; onHauteur(h: nu
           <div className="regl-section">
             <div className="regl-sous-titre">Options</div>
             <Interrupteur actif={reglages.transcription} onChange={(transcription) => changer({ ...reglages, transcription })}>
-              Transcrire la parole des sons et des vidéos
+              {tr("Transcrire la parole des sons et des vidéos", "Transcribe speech in audio and videos")}
               {installation?.phase === "a_installer" && installation.transcription > 0 && (
                 <span className="accueil-poids"> + {taille(installation.transcription)}</span>
               )}
             </Interrupteur>
             <Interrupteur actif={reglages.visages} onChange={(visages) => changer({ ...reglages, visages })}>
-              Reconnaître les visages
+              {tr("Reconnaître les visages", "Recognize faces")}
               {installation?.phase === "a_installer" && installation.visages > 0 && (
                 <span className="accueil-poids"> + {taille(installation.visages)}</span>
               )}
             </Interrupteur>
             <Interrupteur actif={reglages.demarrage} onChange={(demarrage) => changer({ ...reglages, demarrage })}>
-              Lancer Furet avec Windows
+              {tr("Lancer Furet avec Windows", "Start Furet with Windows")}
             </Interrupteur>
           </div>
         </>
@@ -122,29 +125,39 @@ export function Accueil({ onFini, onHauteur }: { onFini(): void; onHauteur(h: nu
             <div className="accueil-ligne">
               <span>{installation.nom}…</span>
               <span>
-                {taille(installation.fait)} sur {taille(installation.total)}
+                {taille(installation.fait)} {tr("sur", "of")} {taille(installation.total)}
               </span>
             </div>
-            <div className="accueil-note">Tu peux fermer cette fenêtre : le téléchargement continue.</div>
+            <div className="accueil-note">
+              {tr("Tu peux fermer cette fenêtre : le téléchargement continue.", "You can close this window: the download keeps going.")}
+            </div>
           </>
         ) : pret ? (
           <>
             <div className="accueil-pret">
-              {lance ? "C'est prêt !" : "Tout est installé."} Furet lit tes fichiers en arrière-plan ; tu peux déjà
-              chercher.
+              {lance ? tr("C'est prêt !", "All set!") : tr("Tout est installé.", "Everything is installed.")}{" "}
+              {tr(
+                "Furet lit tes fichiers en arrière-plan ; tu peux déjà chercher.",
+                "Furet reads your files in the background; you can already search.",
+              )}
             </div>
             <button className="accueil-bouton" onClick={onFini}>
-              Commencer à chercher
+              {tr("Commencer à chercher", "Start searching")}
             </button>
           </>
         ) : (
           <>
             {phase === "erreur" && installation?.phase === "erreur" && <div className="regl-erreur">{installation.message}</div>}
             <button className="accueil-bouton" onClick={commencer} disabled={!reglages}>
-              {phase === "erreur" ? "Réessayer" : `Télécharger et commencer · ${taille(aTelecharger)}`}
+              {phase === "erreur"
+                ? tr("Réessayer", "Try again")
+                : `${tr("Télécharger et commencer", "Download and start")} · ${taille(aTelecharger)}`}
             </button>
             <div className="accueil-note">
-              Une seule fois : le moteur de recherche et son modèle. Ensuite, ouvre Furet à tout moment avec{" "}
+              {tr(
+                "Une seule fois : le moteur de recherche et son modèle. Ensuite, ouvre Furet à tout moment avec",
+                "Just once: the search engine and its model. Then open Furet anytime with",
+              )}{" "}
               <strong>{raccourci}</strong>.
             </div>
           </>

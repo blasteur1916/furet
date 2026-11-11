@@ -75,8 +75,8 @@ struct Ville {
 /// La liste des villes du monde (plus de 15 000 habitants) et les noms des pays.
 pub struct Villes {
     villes: Vec<Ville>,
-    /// Code du pays → (nom en français, autres noms séparés par |).
-    pays: HashMap<String, (String, String)>,
+    /// Code du pays → (nom en français, nom en anglais, autres noms séparés par |).
+    pays: HashMap<String, (String, String, String)>,
 }
 
 fn dossier(racine: &Path) -> PathBuf {
@@ -107,11 +107,17 @@ impl Villes {
             })
             .collect();
         let texte = std::fs::read_to_string(d.join("pays.tsv")).context("liste des pays")?;
+        // code, français, anglais, autres (une ancienne liste n'a pas l'anglais : code, français, autres).
         let pays = texte
             .lines()
             .filter_map(|l| {
-                let mut c = l.split('\t');
-                Some((c.next()?.to_owned(), (c.next()?.to_owned(), c.next().unwrap_or("").to_owned())))
+                let c: Vec<&str> = l.split('\t').collect();
+                let (fr, en, autres) = match c.len() {
+                    4.. => (c[1], c[2], c[3]),
+                    3 => (c[1], c[2].split('|').next().unwrap_or(c[1]), c[2]),
+                    _ => (*c.get(1)?, *c.get(1)?, ""),
+                };
+                Some((c[0].to_owned(), (fr.to_owned(), en.to_owned(), autres.to_owned())))
             })
             .collect();
         Ok(Villes { villes, pays })
@@ -209,7 +215,7 @@ pub fn preparer(source: &Path, sortie: &Path) -> Result<()> {
             .collect();
         autres.sort();
         autres.dedup();
-        let _ = writeln!(pays, "{code}\t{fr}\t{}", autres.join("|"));
+        let _ = writeln!(pays, "{code}\t{fr}\t{anglais}\t{}", autres.join("|"));
     }
     if villes.len() < 1000 || pays.is_empty() {
         anyhow::bail!("liste des villes incomplète");
@@ -284,15 +290,24 @@ pub fn passe(base: &mut Connection, racine: &Path, arret: &AtomicBool) -> Result
         let mut req = base.prepare("SELECT id, lat, lon FROM fichiers WHERE lat IS NOT NULL AND lieu_id IS NULL")?;
         req.query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))?.collect::<rusqlite::Result<_>>()?
     };
-    if a_placer.is_empty() || !Villes::presentes(racine) {
+    let sans_anglais: i64 = base.query_row("SELECT COUNT(*) FROM lieux WHERE pays_en IS NULL", [], |r| r.get(0))?;
+    if (a_placer.is_empty() && sans_anglais == 0) || !Villes::presentes(racine) {
         return Ok((lues.len(), 0));
     }
     let villes = Villes::charger(racine)?;
+    if sans_anglais > 0 {
+        let t = base.transaction()?;
+        for (fr, en, _) in villes.pays.values() {
+            t.execute("UPDATE lieux SET pays_en = ?2 WHERE pays_en IS NULL AND pays = ?1", params![fr, en])?;
+        }
+        t.commit()?;
+    }
     let t = base.transaction()?;
     let mut lieux: HashMap<(String, String, String), i64> = HashMap::new();
     {
         let mut ajout = t.prepare(
-            "INSERT OR IGNORE INTO lieux (ville, region, pays, noms_ville, noms_region, noms_pays) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT OR IGNORE INTO lieux (ville, region, pays, noms_ville, noms_region, noms_pays, pays_en)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
         )?;
         let mut cherche = t.prepare("SELECT id FROM lieux WHERE ville = ?1 AND region = ?2 AND pays = ?3")?;
         let mut maj = t.prepare("UPDATE fichiers SET lieu_id = ?2 WHERE id = ?1")?;
@@ -301,7 +316,8 @@ pub fn passe(base: &mut Connection, racine: &Path, arret: &AtomicBool) -> Result
                 break;
             }
             let Some((v, km)) = villes.plus_proche(*lat, *lon) else { continue };
-            let (pays, autres_pays) = villes.pays.get(&v.pays).cloned().unwrap_or_else(|| (v.pays.clone(), String::new()));
+            let (pays, pays_en, autres_pays) =
+                villes.pays.get(&v.pays).cloned().unwrap_or_else(|| (v.pays.clone(), v.pays.clone(), String::new()));
             let (ville, autres_ville) = if km <= VILLE_MAX_KM { (v.nom.clone(), v.autres.as_str()) } else { (String::new(), "") };
             let grande = villes.grande_ville_proche(*lat, *lon, &ville);
             let cle = (ville.clone(), v.region.clone(), pays.clone());
@@ -319,7 +335,8 @@ pub fn passe(base: &mut Connection, racine: &Path, arret: &AtomicBool) -> Result
                             grande.map_or("", |g| g.autres.as_str()),
                         ]),
                         noms_normalises([v.region.as_str()]),
-                        noms_normalises([pays.as_str(), autres_pays.as_str(), v.pays.as_str()]),
+                        noms_normalises([pays.as_str(), pays_en.as_str(), autres_pays.as_str(), v.pays.as_str()]),
+                        pays_en,
                     ])?;
                     let l: i64 = cherche.query_row(params![ville, v.region, pays], |r| r.get(0))?;
                     lieux.insert(cle, l);
@@ -358,9 +375,11 @@ pub fn reperer(base: &Connection, texte: &str) -> Result<Option<LieuTrouve>> {
         affichage: [String; 3],
     }
     let lieux: Vec<Lieu> = {
-        let mut req = base.prepare("SELECT id, ville, region, pays, noms_ville, noms_region, noms_pays FROM lieux")?;
+        let mut req =
+            base.prepare("SELECT id, ville, region, pays, noms_ville, noms_region, noms_pays, pays_en FROM lieux")?;
         req.query_map([], |r| {
-            let (ville, region, pays): (String, String, String) = (r.get(1)?, r.get(2)?, r.get(3)?);
+            let (ville, region): (String, String) = (r.get(1)?, r.get(2)?);
+            let pays = choisir_pays(r.get(3)?, r.get(7)?);
             Ok(Lieu {
                 id: r.get(0)?,
                 noms: [r.get(4)?, r.get(5)?, r.get(6)?],
@@ -404,13 +423,21 @@ pub fn photos(base: &Connection, lieu: &LieuTrouve) -> Result<HashSet<String>> {
     Ok(photos)
 }
 
-/// « Barcelona, Espagne » pour une photo placée sur la carte.
+/// Le nom du pays dans la langue de l'appli (un lieu enregistré par une version plus ancienne n'a que le français).
+fn choisir_pays(fr: String, en: Option<String>) -> String {
+    match en {
+        Some(en) if !crate::langue::francais() => en,
+        _ => fr,
+    }
+}
+
+/// « Barcelona, Espagne » (« Barcelona, Spain ») pour une photo placée sur la carte.
 pub fn lieu_de(base: &Connection, chemin: &str) -> Result<Option<String>> {
     let lieu: Option<(String, String, String)> = base
         .query_row(
-            "SELECT l.ville, l.region, l.pays FROM fichiers f JOIN lieux l ON l.id = f.lieu_id WHERE f.chemin = ?1",
+            "SELECT l.ville, l.region, l.pays, l.pays_en FROM fichiers f JOIN lieux l ON l.id = f.lieu_id WHERE f.chemin = ?1",
             [chemin],
-            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            |r| Ok((r.get(0)?, r.get(1)?, choisir_pays(r.get(2)?, r.get(3)?))),
         )
         .ok();
     Ok(lieu.map(|(ville, region, pays)| {

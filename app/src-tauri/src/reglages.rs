@@ -30,6 +30,8 @@ pub struct Reglages {
     pub bibliotheques: bool,
     /// Lancer Furet avec Windows.
     pub demarrage: bool,
+    /// « auto » (la langue de Windows), « en » ou « fr ».
+    pub langue: String,
     /// Le dossier des outils, modèles et données, s'il n'est pas celui par défaut (développement).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub racine: Option<PathBuf>,
@@ -46,6 +48,7 @@ impl Default for Reglages {
             pause_jeu: true,
             bibliotheques: false,
             demarrage: true,
+            langue: "auto".into(),
             racine: None,
         }
     }
@@ -55,6 +58,26 @@ static REGLAGES: RwLock<Option<Reglages>> = RwLock::new(None);
 static FICHIER: OnceLock<PathBuf> = OnceLock::new();
 static PREMIER_LANCEMENT: AtomicBool = AtomicBool::new(false);
 static APP: OnceLock<AppHandle> = OnceLock::new();
+
+/// La langue des textes : celle du réglage, sinon celle du système (le français pour un Windows en français,
+/// l'anglais pour tout le reste).
+fn appliquer_langue(r: &Reglages) {
+    use furet_moteur::langue::{Langue, definir};
+    // Pour les essais : `FURET_LANGUE=en` ou `fr` passe avant le réglage.
+    let forcee = std::env::var("FURET_LANGUE").ok();
+    let francais = match forcee.as_deref().unwrap_or(r.langue.as_str()) {
+        "fr" => true,
+        "en" => false,
+        _ => sys_locale::get_locale().is_some_and(|l| l.to_lowercase().starts_with("fr")),
+    };
+    definir(if francais { Langue::Francais } else { Langue::Anglais });
+}
+
+/// La langue des textes de l'interface : « fr » ou « en ».
+#[tauri::command]
+pub fn langue() -> &'static str {
+    if furet_moteur::langue::francais() { "fr" } else { "en" }
+}
 
 /// Inscrit Furet au démarrage de Windows, ou l'en retire, selon le réglage (pas en mode de test).
 pub fn appliquer_demarrage() {
@@ -85,6 +108,7 @@ pub fn charger(app: &AppHandle) {
     let premiere_fois = lus.is_none();
     let reglages = lus.unwrap_or_else(|| Reglages { dossiers: dossiers_usuels(app), ..Default::default() });
     let _ = FICHIER.set(fichier);
+    appliquer_langue(&reglages);
     *REGLAGES.write().unwrap_or_else(|e| e.into_inner()) = Some(reglages.clone());
     if premiere_fois {
         PREMIER_LANCEMENT.store(true, Ordering::Relaxed);
@@ -128,6 +152,7 @@ fn enregistrer(r: &Reglages) {
 fn changer(r: Reglages) -> Reglages {
     *REGLAGES.write().unwrap_or_else(|e| e.into_inner()) = Some(r.clone());
     enregistrer(&r);
+    appliquer_langue(&r);
     appliquer_demarrage();
     crate::indexeur::reglages_changes();
     r
@@ -158,13 +183,18 @@ pub fn reglages_ecrire(reglages: Reglages) -> Reglages {
 /// Choisit un dossier à indexer avec le sélecteur du système.
 #[tauri::command]
 pub async fn ajouter_dossier(app: AppHandle) -> Result<Reglages, String> {
-    let Some(choisi) = app.dialog().file().set_title("Dossier à indexer").blocking_pick_folder() else {
+    let titre = furet_moteur::langue::t("Dossier à indexer", "Folder to index");
+    let Some(choisi) = app.dialog().file().set_title(titre).blocking_pick_folder() else {
         return Ok(lire());
     };
     let chemin = choisi.into_path().map_err(|e| e.to_string())?;
     let mut r = lire();
     if !ajouter_sans_doublon(&mut r.dossiers, chemin) {
-        return Err("Ce dossier est déjà indexé (il est dans un dossier de la liste).".into());
+        return Err(furet_moteur::langue::t(
+            "Ce dossier est déjà indexé (il est dans un dossier de la liste).",
+            "This folder is already indexed (it is inside a folder of the list).",
+        )
+        .into());
     }
     Ok(changer(r))
 }

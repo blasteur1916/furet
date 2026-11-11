@@ -108,7 +108,8 @@ fn infos(chemin: &Path) -> String {
     let modifie = m.modified().ok().and_then(|t| t.duration_since(UNIX_EPOCH).ok()).map(|d| d.as_secs() as i64);
     // Une photo : quand et où elle a été prise, si on le sait.
     let photo = (Genre::de(chemin) == Some(Genre::Photo)).then(|| recherche::prise_et_lieu(chemin)).flatten();
-    let date = photo.or_else(|| modifie.map(|s| format!("modifié le {}", date_lisible(s)))).unwrap_or_default();
+    let modifie_le = furet_moteur::langue::t("modifié le", "modified");
+    let date = photo.or_else(|| modifie.map(|s| format!("{modifie_le} {}", date_lisible(s)))).unwrap_or_default();
     if m.is_dir() {
         return date;
     }
@@ -118,7 +119,7 @@ fn infos(chemin: &Path) -> String {
 /// L'aperçu d'un fichier proposé ; `repere` : la page, la ligne ou le moment trouvé.
 #[tauri::command]
 pub async fn apercu(cle: String, repere: Option<f64>) -> Result<Apercu, String> {
-    let chemin = recherche::chemin_offert(&cle).ok_or("fichier inconnu : cherchez à nouveau")?;
+    let chemin = recherche::chemin_offert(&cle).ok_or(furet_moteur::langue::t("fichier inconnu : cherchez à nouveau", "unknown file: search again"))?;
     tauri::async_runtime::spawn_blocking(move || Apercu { infos: infos(&chemin), contenu: contenu(&cle, &chemin, repere) })
         .await
         .map_err(|e| e.to_string())
@@ -174,7 +175,8 @@ fn texte(chemin: &Path, repere: Option<f64>) -> Option<Contenu> {
             break;
         }
         let titre = match b.nature {
-            "diapo" | "feuille" => format!("{} {}", b.nature, b.numero as u32),
+            "diapo" => format!("{} {}", furet_moteur::langue::t("diapo", "slide"), b.numero as u32),
+            "feuille" => format!("{} {}", furet_moteur::langue::t("feuille", "sheet"), b.numero as u32),
             _ => String::new(),
         };
         vus.push(BlocVu { titre, numero: b.numero, texte: b.texte });

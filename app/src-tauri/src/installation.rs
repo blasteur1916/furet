@@ -136,7 +136,8 @@ pub fn installer() {
                 Err(e) if essais + 1 < ESSAIS_MAX => {
                     essais += 1;
                     log::warn!("installation interrompue ({essais}/{ESSAIS_MAX}) : {e:#}");
-                    publier(Etat::Erreur { message: format!("{e:#} — nouvel essai dans quelques secondes") });
+                    let suite = furet_moteur::langue::t("nouvel essai dans quelques secondes", "trying again in a few seconds");
+                    publier(Etat::Erreur { message: format!("{e:#} — {suite}") });
                     std::thread::sleep(REESSAI);
                 }
                 Err(e) => break Err(e),

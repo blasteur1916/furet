@@ -8,6 +8,7 @@ import { Anneau } from "./Anneau";
 import { Apercu, HAUTEUR_APERCU } from "./Apercu";
 import { IconeCopier, IconeDossier, IconeOeil, IconeOuvrirAvec, IconeRecherche, IconeReglages, Miniature } from "./icones";
 import { dossierCourt, surligner } from "./texte";
+import { tr } from "../i18n";
 import "./barre.css";
 
 const ignorer = () => {};
@@ -36,9 +37,17 @@ const HAUTEUR_MESSAGE = 42;
 const MARGES_LISTE = 21;
 
 interface Groupe {
-  titre: "Par le nom" | "Par le contenu" | "Les plus récents" | "Récents";
+  /** Par le nom, par le contenu, les plus récents (seulement des filtres), récents (barre vide). */
+  sorte: "nom" | "contenu" | "plus_recents" | "recents";
   lignes: Ligne[];
 }
+
+const titres: Record<Groupe["sorte"], () => string> = {
+  nom: () => tr("Par le nom", "By name"),
+  contenu: () => tr("Par le contenu", "By content"),
+  plus_recents: () => tr("Les plus récents", "Most recent"),
+  recents: () => tr("Récents", "Recent"),
+};
 
 function hauteur(groupes: Groupe[], message: boolean): number {
   const lignes = groupes.reduce((n, g) => n + g.lignes.length, 0);
@@ -84,8 +93,9 @@ function Pourquoi({ ligne, recherche, parContenu }: { ligne: Ligne; recherche: s
   }
   const dossier = dossierCourt(ligne.dossier, 48);
   if (ligne.position) return <>{`${ligne.position} · ${dossier}`}</>;
-  const evoque = ligne.genre === "photo" || ligne.genre === "video" ? "ressemble à" : "en rapport avec";
-  return <>{`${evoque} « ${recherche} » · ${dossier}`}</>;
+  const image = ligne.genre === "photo" || ligne.genre === "video";
+  const evoque = image ? tr("ressemble à « {} »", "looks like “{}”") : tr("en rapport avec « {} »", "about “{}”");
+  return <>{`${evoque.replace("{}", recherche)} · ${dossier}`}</>;
 }
 
 /** Un petit bouton d'action sur le résultat choisi (le clic ne l'ouvre pas). */
@@ -213,9 +223,9 @@ export function Barre({
     const parContenu = contenu.lignes.filter((l) => !dejaLa.has(l.cle)).slice(0, CONTENU_MAX + (parNom.length === 0 ? NOMS_MAX : 0));
     const g: Groupe[] = [];
     // La barre vide : les fichiers ouverts récemment.
-    if (!recherche && recents && recents.length > 0) g.push({ titre: "Récents", lignes: recents });
-    if (recherche && parNom.length > 0) g.push({ titre: "Par le nom", lignes: parNom });
-    if (recherche && parContenu.length > 0) g.push({ titre: seulementFiltres ? "Les plus récents" : "Par le contenu", lignes: parContenu });
+    if (!recherche && recents && recents.length > 0) g.push({ sorte: "recents", lignes: recents });
+    if (recherche && parNom.length > 0) g.push({ sorte: "nom", lignes: parNom });
+    if (recherche && parContenu.length > 0) g.push({ sorte: seulementFiltres ? "plus_recents" : "contenu", lignes: parContenu });
     return g;
   }, [noms, contenu, recherche, seulementFiltres, recents]);
   const liste = useMemo(() => groupes.flatMap((g) => g.lignes), [groupes]);
@@ -225,11 +235,14 @@ export function Barre({
   // Un message seulement quand la recherche par le contenu a vraiment répondu (pas de « rien » qui clignote).
   const message =
     recherche === "" && recents?.length === 0
-      ? "Essaie « facture électricité », « photos 2024 » ou « vacances Espagne »"
+      ? tr("Essaie « facture électricité », « photos 2024 » ou « vacances Espagne »", "Try “electricity bill”, “photos 2024” or “holidays Spain”")
       : recherche !== "" && contenuAJour && liste.length === 0
-      ? "Aucun résultat"
+      ? tr("Aucun résultat", "No results")
       : recherche !== "" && contenuAJour && indexVide
-        ? "L'index est vide : indexe un dossier pour chercher aussi dans le contenu des fichiers"
+        ? tr(
+            "L'index est vide : indexe un dossier pour chercher aussi dans le contenu des fichiers",
+            "The index is empty: add a folder to also search inside your files",
+          )
         : null;
 
   // L'aperçu du résultat choisi se prépare dès qu'on s'y arrête : Espace l'affiche aussitôt.
@@ -269,7 +282,7 @@ export function Barre({
   const copier = (ligne: Ligne | undefined) => {
     if (ligne)
       copierChemin(ligne)
-        .then(() => setNote({ cle: ligne.cle, texte: "Chemin copié" }))
+        .then(() => setNote({ cle: ligne.cle, texte: tr("Chemin copié", "Path copied") }))
         .catch(ignorer);
   };
   const ouvrirAutrement = (ligne: Ligne | undefined) => {
@@ -285,7 +298,7 @@ export function Barre({
           ref={champ}
           className="barre-saisie"
           value={texte}
-          placeholder="Chercher un fichier par son nom ou ce qu'il contient"
+          placeholder={tr("Chercher un fichier par son nom ou ce qu'il contient", "Search a file by its name or what's inside")}
           spellCheck={false}
           autoComplete="off"
           onChange={(e) => {
@@ -327,7 +340,7 @@ export function Barre({
           }}
         />
         {filtres.pour === recherche && filtres.etiquettes.length > 0 && (
-          <span className="barre-filtres" title="Filtres compris dans la recherche">
+          <span className="barre-filtres" title={tr("Filtres compris dans la recherche", "Filters understood in your search")}>
             {filtres.etiquettes.map((f) => (
               <span key={f} className="barre-filtre">
                 {f}
@@ -335,9 +348,9 @@ export function Barre({
             ))}
           </span>
         )}
-        {lent && !contenuAJour && <span className="barre-attente" aria-label="Recherche dans le contenu" />}
+        {lent && !contenuAJour && <span className="barre-attente" aria-label={tr("Recherche dans le contenu", "Searching inside files")} />}
         <Anneau etat={indexation} />
-        <button className="barre-bouton" title="Réglages" aria-label="Réglages" onClick={onReglages}>
+        <button className="barre-bouton" title={tr("Réglages", "Settings")} aria-label={tr("Réglages", "Settings")} onClick={onReglages}>
           <IconeReglages />
         </button>
       </div>
@@ -347,12 +360,12 @@ export function Barre({
         (groupes.length > 0 || message) && (
           <div className={`barre-liste ${lent && !contenuAJour ? "barre-liste--ancienne" : ""}`} role="listbox">
             {groupes.map((g) => (
-              <div key={g.titre} className="barre-groupe">
-                <div className="barre-titre">{g.titre}</div>
+              <div key={g.sorte} className="barre-groupe">
+                <div className="barre-titre">{titres[g.sorte]()}</div>
                 {g.lignes.map((ligne) => {
                   const i = rang++;
                   const actif = i === choisi;
-                  const parContenu = g.titre !== "Par le nom";
+                  const parContenu = g.sorte !== "nom";
                   return (
                     <div
                       key={ligne.cle}
@@ -401,16 +414,16 @@ export function Barre({
                           <span className="barre-indice">{note.texte}</span>
                         ) : (
                           <span className="barre-actions">
-                            <Action titre="Aperçu (Espace)" onClick={() => setApercu(true)}>
+                            <Action titre={tr("Aperçu (Espace)", "Preview (Space)")} onClick={() => setApercu(true)}>
                               <IconeOeil />
                             </Action>
-                            <Action titre="Montrer dans le dossier (Ctrl+Entrée)" onClick={() => ouvrir(ligne, true)}>
+                            <Action titre={tr("Montrer dans le dossier (Ctrl+Entrée)", "Show in folder (Ctrl+Enter)")} onClick={() => ouvrir(ligne, true)}>
                               <IconeDossier />
                             </Action>
-                            <Action titre="Copier le chemin (Ctrl+C)" onClick={() => copier(ligne)}>
+                            <Action titre={tr("Copier le chemin (Ctrl+C)", "Copy path (Ctrl+C)")} onClick={() => copier(ligne)}>
                               <IconeCopier />
                             </Action>
-                            <Action titre="Ouvrir avec… (Ctrl+O)" onClick={() => ouvrirAutrement(ligne)}>
+                            <Action titre={tr("Ouvrir avec… (Ctrl+O)", "Open with… (Ctrl+O)")} onClick={() => ouvrirAutrement(ligne)}>
                               <IconeOuvrirAvec />
                             </Action>
                           </span>

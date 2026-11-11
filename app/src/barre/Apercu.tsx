@@ -3,10 +3,14 @@ import { lireApercu, type Apercu as A, type BlocTexte } from "../ipc/apercu";
 import type { Ligne } from "../ipc/recherche";
 import { Miniature, Picto } from "./icones";
 import { surligner } from "./texte";
+import { tr } from "../i18n";
 import "./apercu.css";
 
 /** Ce qui tient sous la barre (l'île fait au plus 620 px de haut). */
 export const HAUTEUR_APERCU = 562;
+/** Une position qui n'est qu'une date ou un lieu (« 3 mars 2024 · 1,2 Mo », « taken in Lagos… »). */
+const DATE_OU_LIEU =
+  /^(modifié|pris|modified|taken|\d|(January|February|March|April|May|June|July|August|September|October|November|December) )/;
 const PETITS_MOTS = new Set(["les", "des", "une", "aux", "pour", "par", "sur", "dans", "avec", "qui", "que", "est", "the", "and", "for", "with"]);
 
 /** Les mots cherchés ressortent dans le texte (ceux d'une lettre, trop courants, non). */
@@ -60,7 +64,7 @@ function Lecteur({ adresse, debut, affiche, video }: { adresse: string; debut: n
     return (
       <div className="apercu-corps">
         <img className="apercu-image" src={affiche} alt="" draggable={false} />
-        <div className="apercu-bandeau">Ne se lit pas ici : Entrée pour l'ouvrir</div>
+        <div className="apercu-bandeau">{tr("Ne se lit pas ici : Entrée pour l'ouvrir", "Can't play here: press Enter to open it")}</div>
       </div>
     );
   }
@@ -97,7 +101,7 @@ function Pdf({ adresse, page: depart, pages, onPage }: { adresse: string; page: 
       <img
         className="apercu-page"
         src={`${adresse}${page}`}
-        alt={`Page ${page}`}
+        alt={`${tr("Page", "Page")} ${page}`}
         draggable={false}
         onLoad={() => zone.current && (zone.current.scrollTop = 0)}
       />
@@ -108,14 +112,16 @@ function Pdf({ adresse, page: depart, pages, onPage }: { adresse: string; page: 
 function Dossier({ entrees, total }: { entrees: { nom: string; dossier: boolean }[]; total: number }) {
   return (
     <div className="apercu-corps apercu-corps--defile apercu-dossier">
-      {entrees.length === 0 && <div className="apercu-vide">Dossier vide</div>}
+      {entrees.length === 0 && <div className="apercu-vide">{tr("Dossier vide", "Empty folder")}</div>}
       {entrees.map((e) => (
         <div key={e.nom} className={`apercu-entree ${e.dossier ? "apercu-entree--dossier" : ""}`}>
           <Picto genre={e.dossier ? "dossier" : "fichier"} />
           <span>{e.nom}</span>
         </div>
       ))}
-      {total > entrees.length && <div className="apercu-vide">et {total - entrees.length} autres…</div>}
+      {total > entrees.length && (
+        <div className="apercu-vide">{tr("et {} autres…", "and {} more…").replace("{}", String(total - entrees.length))}</div>
+      )}
     </div>
   );
 }
@@ -151,15 +157,15 @@ export function Apercu({ ligne, mots }: { ligne: Ligne; mots: string }) {
         <span className="apercu-titre">
           <span className="apercu-nom">{ligne.nom}</span>
           <span className="apercu-infos">
-            {/* La position, sauf « modifié le… » ou « pris à… » : les infos le disent déjà. */}
-            {[c?.type === "pdf" ? `page ${page || c.page} sur ${c.pages}` : /^(modifié|pris|\d)/.test(ligne.position) ? "" : ligne.position, a?.infos]
+            {/* La position, sauf une date ou un lieu (« pris à… ») : les infos le disent déjà. */}
+            {[c?.type === "pdf" ? tr(`page ${page || c.page} sur ${c.pages}`, `page ${page || c.page} of ${c.pages}`) : DATE_OU_LIEU.test(ligne.position) ? "" : ligne.position, a?.infos]
               .filter(Boolean)
               .join(" · ")}
           </span>
         </span>
         <span className="apercu-aide">
           {c?.type === "pdf" && c.pages > 1 && <kbd>← →</kbd>}
-          <kbd>Espace</kbd> fermer
+          <kbd>{tr("Espace", "Space")}</kbd> {tr("fermer", "close")}
         </span>
       </div>
       {!c ? (

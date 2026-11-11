@@ -90,11 +90,11 @@ fn publier(app: &AppHandle, etat: Etat) {
 /// Pourquoi il faut s'arrêter maintenant, s'il le faut.
 fn raison_de_pause(r: &reglages::Reglages) -> Option<&'static str> {
     if PAUSE_MANUELLE.load(Ordering::Relaxed) {
-        Some("en pause")
+        Some("manuelle")
     } else if r.pause_batterie && plateforme::sur_batterie() {
-        Some("sur batterie")
+        Some("batterie")
     } else if r.pause_jeu && plateforme::jeu_en_cours() {
-        Some("jeu ou plein écran")
+        Some("jeu")
     } else {
         None
     }
@@ -253,7 +253,7 @@ pub fn basculer_pause(app: AppHandle) -> Etat {
         if let Some(a) = &partage().arret {
             a.store(true, Ordering::Relaxed);
         }
-        publier(&app, Etat::Pause { raison: "en pause".into() });
+        publier(&app, Etat::Pause { raison: "manuelle".into() });
     } else {
         reglages_changes();
     }

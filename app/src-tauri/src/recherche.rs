@@ -17,6 +17,7 @@ use furet_moteur::pertinence::Charabia;
 use furet_moteur::serveur::{Client, Serveur};
 use furet_moteur::vecteurs::{self, IndexRapide};
 use furet_moteur::filtres::{self, date_lisible, taille_lisible};
+use furet_moteur::langue::{francais, t};
 use furet_moteur::{base, lieux, pertinence, visages};
 use rusqlite::Connection;
 use serde::Serialize;
@@ -479,11 +480,13 @@ fn reclasser(texte: &str, candidats: &mut [(f32, PathBuf, bool)]) {
 fn quand(secondes: u64) -> String {
     let maintenant = SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
     match maintenant.saturating_sub(secondes) {
-        0..60 => "à l'instant".into(),
-        s @ 60..3600 => format!("il y a {} min", s / 60),
-        s @ 3600..86_400 => format!("il y a {} h", s / 3600),
-        86_400..172_800 => "hier".into(),
-        _ => format!("le {}", date_lisible(secondes as i64)),
+        0..60 => t("à l'instant", "just now").into(),
+        s @ 60..3600 if francais() => format!("il y a {} min", s / 60),
+        s @ 60..3600 => format!("{} min ago", s / 60),
+        s @ 3600..86_400 if francais() => format!("il y a {} h", s / 3600),
+        s @ 3600..86_400 => format!("{} h ago", s / 3600),
+        86_400..172_800 => t("hier", "yesterday").into(),
+        _ => format!("{} {}", t("le", "on"), date_lisible(secondes as i64)),
     }
 }
 
@@ -493,7 +496,7 @@ pub async fn recents() -> Vec<Ligne> {
     tauri::async_runtime::spawn_blocking(|| {
         historique::recents(RECENTS_MAX)
             .into_iter()
-            .map(|(c, moment)| ligne(&c.to_string_lossy(), format!("ouvert {}", quand(moment)), None, c.is_dir(), None))
+            .map(|(c, moment)| ligne(&c.to_string_lossy(), format!("{} {}", t("ouvert", "opened"), quand(moment)), None, c.is_dir(), None))
             .collect()
     })
     .await
@@ -531,9 +534,10 @@ pub fn prise_et_lieu(chemin: &Path) -> Option<String> {
     })
     .ok()?;
     match (prise, lieu) {
-        (Some(p), Some(l)) => Some(format!("pris le {} à {l}", date_lisible(p))),
-        (Some(p), None) => Some(format!("pris le {}", date_lisible(p))),
-        (None, Some(l)) => Some(format!("pris à {l}")),
+        (Some(p), Some(l)) if francais() => Some(format!("pris le {} à {l}", date_lisible(p))),
+        (Some(p), Some(l)) => Some(format!("taken {} in {l}", date_lisible(p))),
+        (Some(p), None) => Some(format!("{} {}", t("pris le", "taken"), date_lisible(p))),
+        (None, Some(l)) => Some(format!("{} {l}", t("pris à", "taken in"))),
         (None, None) => None,
     }
 }
@@ -577,7 +581,7 @@ fn contenu(texte: &str) -> anyhow::Result<Vec<Ligne>> {
             break c.clone();
         }
         if debut.elapsed() > ATTENTE_SERVEUR_MAX {
-            bail!("la recherche par le contenu n'est pas prête");
+            bail!("{}", t("la recherche par le contenu n'est pas prête", "content search is not ready yet"));
         }
         std::thread::sleep(Duration::from_millis(30));
     };
@@ -637,10 +641,10 @@ fn contenu(texte: &str) -> anyhow::Result<Vec<Ligne>> {
     let mut lignes: Vec<Ligne> = personnes
         .into_iter()
         .filter(|p| filtre.garde_chemin(Path::new(&p.chemin), false))
-        .map(|p| ligne(&p.chemin, format!("{} · visage reconnu", majuscule(&p.prenom)), None, false, None))
+        .map(|p| ligne(&p.chemin, format!("{} · {}", majuscule(&p.prenom), t("visage reconnu", "face recognized")), None, false, None))
         .collect();
     for (chemin, lieu) in au_lieu {
-        let l = ligne(&chemin, format!("pris à {lieu}"), None, false, None);
+        let l = ligne(&chemin, format!("{} {lieu}", t("pris à", "taken in")), None, false, None);
         if !lignes.iter().any(|x| x.cle == l.cle) {
             lignes.push(l);
         }
@@ -653,7 +657,7 @@ fn contenu(texte: &str) -> anyhow::Result<Vec<Ligne>> {
         if let Some(parent) = Path::new(&r.chemin).parent()
             && let Some((dossier, n)) = dossiers.iter().find(|(d, _)| d == parent)
         {
-            let l = ligne(&dossier.to_string_lossy(), format!("{n} fichiers correspondants"), None, true, None);
+            let l = ligne(&dossier.to_string_lossy(), format!("{n} {}", t("fichiers correspondants", "matching files")), None, true, None);
             if deja.insert(l.cle.clone()) {
                 lignes.push(l);
             }
@@ -706,7 +710,7 @@ fn majuscule(prenom: &str) -> String {
 /// Ouvre un fichier proposé, ou avec `dossier` le montre dans l'Explorateur ; la barre se ferme.
 #[tauri::command]
 pub fn ouvrir_fichier(app: AppHandle, cle: String, dossier: bool) -> Result<(), String> {
-    let chemin = verrou(&etat().offerts).get(&cle).cloned().ok_or("fichier inconnu : cherchez à nouveau")?;
+    let chemin = verrou(&etat().offerts).get(&cle).cloned().ok_or(furet_moteur::langue::t("fichier inconnu : cherchez à nouveau", "unknown file: search again"))?;
     historique::noter(&chemin);
     let ouvreur = app.opener();
     let resultat = if dossier {

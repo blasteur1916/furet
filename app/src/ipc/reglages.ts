@@ -12,6 +12,8 @@ export interface Reglages {
   pause_jeu: boolean;
   /** Lancer Furet avec Windows. */
   demarrage: boolean;
+  /** « auto » (la langue de Windows), « en » ou « fr ». */
+  langue: string;
 }
 
 /**

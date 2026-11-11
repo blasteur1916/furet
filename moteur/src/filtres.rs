@@ -1,4 +1,5 @@
-//! Les filtres tapés dans la barre, retirés du texte cherché : le type (« photos », « pdf », « vidéos »…),
+//! Les filtres tapés dans la barre, en français ou en anglais, retirés du texte cherché : le type (« photos »,
+//! « pdf », « vidéos »…),
 //! la date de modification (« 2024 », « mars 2023 », « hier », « la semaine dernière », « avant 2020 »…) et
 //! la taille (« > 1 Go », « moins de 5 Mo »). Portable : rien ici n'est propre à Windows.
 
@@ -8,6 +9,7 @@ use std::time::UNIX_EPOCH;
 use chrono::{Datelike, Days, Local, Months, NaiveDate, TimeZone};
 
 use crate::fichiers::Genre;
+use crate::langue::{francais, t};
 use crate::noms::normaliser;
 
 /// Ce que les fichiers trouvés doivent respecter.
@@ -81,29 +83,54 @@ pub struct Analyse {
     pub etiquettes: Vec<String>,
 }
 
-/// (mots, types gardés, étiquette)
-const TYPES: [(&[&str], &[&str], &str); 9] = [
-    (&["photo", "photos", "image", "images"], &["photo"], "Photos"),
-    (&["pdf", "pdfs"], &["pdf"], "PDF"),
-    (&["video", "videos", "film", "films"], &["video"], "Vidéos"),
-    (&["audio", "audios", "musique", "musiques", "chanson", "chansons", "enregistrement", "enregistrements"], &["audio"], "Audio"),
-    (&["document", "documents"], &["document", "pdf"], "Documents"),
-    (&["tableur", "tableurs", "excel"], &["tableur"], "Tableurs"),
-    (&["presentation", "presentations", "diaporama", "diaporamas", "powerpoint"], &["document"], "Présentations"),
-    (&["dossier", "dossiers"], &["dossier"], "Dossiers"),
-    (&["archive", "archives", "zip", "zips"], &["archive"], "Archives"),
+/// (mots français et anglais, types gardés, étiquette en français, en anglais)
+const TYPES: [(&[&str], &[&str], &str, &str); 9] = [
+    (&["photo", "photos", "image", "images", "picture", "pictures", "pic", "pics"], &["photo"], "Photos", "Photos"),
+    (&["pdf", "pdfs"], &["pdf"], "PDF", "PDF"),
+    (&["video", "videos", "film", "films", "movie", "movies", "clip", "clips"], &["video"], "Vidéos", "Videos"),
+    (
+        &["audio", "audios", "musique", "musiques", "chanson", "chansons", "enregistrement", "enregistrements", "music",
+            "song", "songs", "recording", "recordings", "sound", "sounds"],
+        &["audio"],
+        "Audio",
+        "Audio",
+    ),
+    (&["document", "documents", "doc", "docs"], &["document", "pdf"], "Documents", "Documents"),
+    (&["tableur", "tableurs", "excel", "spreadsheet", "spreadsheets"], &["tableur"], "Tableurs", "Spreadsheets"),
+    (
+        &["presentation", "presentations", "diaporama", "diaporamas", "powerpoint", "slides", "slideshow"],
+        &["document"],
+        "Présentations",
+        "Presentations",
+    ),
+    (&["dossier", "dossiers", "folder", "folders"], &["dossier"], "Dossiers", "Folders"),
+    (&["archive", "archives", "zip", "zips"], &["archive"], "Archives", "Archives"),
 ];
 
 const MOIS: [&str; 12] =
     ["janvier", "fevrier", "mars", "avril", "mai", "juin", "juillet", "aout", "septembre", "octobre", "novembre", "decembre"];
+const MONTHS: [&str; 12] =
+    ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 const MOIS_LISIBLES: [&str; 12] =
     ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+const MONTHS_LISIBLES: [&str; 12] =
+    ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-/// Retirés au début et à la fin de ce qui reste : « photos de chat » → « chat ».
-const LIAISONS: [&str; 15] =
-    ["de", "du", "des", "d", "en", "le", "la", "les", "l", "a", "et", "fichier", "fichiers", "mes", "modifie"];
-/// « modifié la semaine dernière » : le mot ne change rien, il est retiré.
-const MODIFIE: [&str; 8] = ["modifie", "modifies", "modifiee", "modifiees", "cree", "crees", "creee", "creees"];
+/// Le nom du mois `m` (1 à 12), dans la langue de l'appli.
+fn nom_du_mois(m: u32) -> &'static str {
+    (if francais() { MOIS_LISIBLES } else { MONTHS_LISIBLES })[m as usize - 1]
+}
+
+/// Retirés au début et à la fin de ce qui reste : « photos de chat » → « chat », « photos of my cat » → « cat ».
+const LIAISONS: [&str; 28] = [
+    "de", "du", "des", "d", "en", "le", "la", "les", "l", "a", "et", "fichier", "fichiers", "mes", "modifie", "of", "from",
+    "the", "in", "my", "files", "file", "on", "at", "an", "and", "with", "modified",
+];
+/// « modifié la semaine dernière », « modified last week » : le mot ne change rien, il est retiré.
+const MODIFIE: [&str; 13] = [
+    "modifie", "modifies", "modifiee", "modifiees", "cree", "crees", "creee", "creees", "modified", "edited", "created",
+    "changed", "taken",
+];
 
 /// Les mots de la recherche : les opérateurs à part, « l'année » → « l' » + « année », « 1Go » → « 1 » + « Go ».
 fn decouper(texte: &str) -> Vec<String> {
@@ -158,7 +185,7 @@ fn annee(mot: &str, aujourdhui: NaiveDate) -> Option<i32> {
 }
 
 fn mois(mot: &str) -> Option<u32> {
-    MOIS.iter().position(|m| *m == mot).map(|i| i as u32 + 1)
+    MOIS.iter().chain(&MONTHS).position(|m| *m == mot).map(|i| (i % 12) as u32 + 1)
 }
 
 /// Une date à la position `i` : (mots pris, période).
@@ -174,43 +201,60 @@ fn date(s: &[String], i: usize, aujourdhui: NaiveDate) -> Option<(usize, Periode
     let cette_annee = premier_du_mois(aujourdhui.year(), 1);
     let mois_entier = |a: i32, m: u32| {
         let d = premier_du_mois(a, m);
-        Periode { debut: Some(d), fin: d.checked_add_months(Months::new(1)), etiquette: format!("{} {a}", MOIS_LISIBLES[m as usize - 1]) }
+        Periode { debut: Some(d), fin: d.checked_add_months(Months::new(1)), etiquette: format!("{} {a}", nom_du_mois(m)) }
     };
     // « la semaine dernière », « le mois dernier », « l'année dernière » : l'article est pris avec.
     let article = usize::from(matches!(mot(0), "la" | "le" | "l"));
     let passe = |k: usize| matches!(mot(k), "derniere" | "dernier" | "passee" | "passe");
+    // « last week », « past month », « previous year ».
+    let last = matches!(mot(0), "last" | "past" | "previous");
+    let semaine_derniere = t("semaine dernière", "last week");
     Some(match (mot(0), mot(1)) {
-        ("aujourd", "hui") => (2, jour(aujourdhui, 1, "aujourd'hui")),
-        ("aujourdhui", _) => (1, jour(aujourdhui, 1, "aujourd'hui")),
-        ("hier", _) => (1, jour(aujourdhui.pred_opt()?, 1, "hier")),
-        ("cette", "semaine") => (2, Periode { debut: Some(lundi), fin: None, etiquette: "cette semaine".into() }),
-        ("ce", "mois" | "mois ci") => (2, Periode { debut: Some(ce_mois), fin: None, etiquette: "ce mois-ci".into() }),
-        ("cette", "annee") => (2, Periode { debut: Some(cette_annee), fin: None, etiquette: "cette année".into() }),
+        ("aujourd", "hui") => (2, jour(aujourdhui, 1, t("aujourd'hui", "today"))),
+        ("aujourdhui" | "today", _) => (1, jour(aujourdhui, 1, t("aujourd'hui", "today"))),
+        ("hier" | "yesterday", _) => (1, jour(aujourdhui.pred_opt()?, 1, t("hier", "yesterday"))),
+        ("cette", "semaine") | ("this", "week") => {
+            (2, Periode { debut: Some(lundi), fin: None, etiquette: t("cette semaine", "this week").into() })
+        }
+        ("ce", "mois" | "mois ci") | ("this", "month") => {
+            (2, Periode { debut: Some(ce_mois), fin: None, etiquette: t("ce mois-ci", "this month").into() })
+        }
+        ("cette", "annee") | ("this", "year") => {
+            (2, Periode { debut: Some(cette_annee), fin: None, etiquette: t("cette année", "this year").into() })
+        }
         _ if mot(article) == "semaine" && passe(article + 1) => {
-            (article + 2, jour(lundi - chrono::Duration::days(7), 7, "semaine dernière"))
+            (article + 2, jour(lundi - chrono::Duration::days(7), 7, semaine_derniere))
         }
-        _ if mot(article) == "mois" && passe(article + 1) => {
+        (_, "week") if last => (2, jour(lundi - chrono::Duration::days(7), 7, semaine_derniere)),
+        _ if (mot(article) == "mois" && passe(article + 1)) || (last && mot(1) == "month") => {
             let d = ce_mois.checked_sub_months(Months::new(1))?;
-            (article + 2, Periode { debut: Some(d), fin: Some(ce_mois), etiquette: "mois dernier".into() })
+            let n = if last { 2 } else { article + 2 };
+            (n, Periode { debut: Some(d), fin: Some(ce_mois), etiquette: t("mois dernier", "last month").into() })
         }
-        _ if mot(article) == "annee" && passe(article + 1) => {
+        _ if (mot(article) == "annee" && passe(article + 1)) || (last && mot(1) == "year") => {
             let a = aujourdhui.year() - 1;
-            (article + 2, Periode { debut: Some(premier_du_mois(a, 1)), fin: Some(cette_annee), etiquette: a.to_string() })
+            let n = if last { 2 } else { article + 2 };
+            (n, Periode { debut: Some(premier_du_mois(a, 1)), fin: Some(cette_annee), etiquette: a.to_string() })
         }
-        ("depuis" | "apres", _) => {
+        ("depuis" | "apres" | "since" | "after", _) => {
             let (n, p) = date(s, i + 1, aujourdhui)?;
-            let etiquette = format!("depuis {}", p.etiquette);
             // « après 2020 » : à partir de 2021 ; « depuis 2020 » : à partir de 2020.
-            let debut = if mot(0) == "apres" { p.fin } else { p.debut };
-            (n + 1, Periode { debut, fin: None, etiquette: if mot(0) == "apres" { format!("après {}", p.etiquette) } else { etiquette } })
+            let apres = matches!(mot(0), "apres" | "after");
+            let debut = if apres { p.fin } else { p.debut };
+            let etiquette = if apres {
+                format!("{} {}", t("après", "after"), p.etiquette)
+            } else {
+                format!("{} {}", t("depuis", "since"), p.etiquette)
+            };
+            (n + 1, Periode { debut, fin: None, etiquette })
         }
-        ("avant", _) => {
+        ("avant" | "before", _) => {
             let (n, p) = date(s, i + 1, aujourdhui)?;
-            (n + 1, Periode { debut: None, fin: p.debut, etiquette: format!("avant {}", p.etiquette) })
+            (n + 1, Periode { debut: None, fin: p.debut, etiquette: format!("{} {}", t("avant", "before"), p.etiquette) })
         }
         (m, a) if mois(m).is_some() && annee(a, aujourdhui).is_some() => (2, mois_entier(annee(a, aujourdhui)?, mois(m)?)),
-        // « en mars » : le dernier mois de mars passé (ou celui-ci).
-        ("en", m) if mois(m).is_some() => {
+        // « en mars », « in march » : le dernier mois de mars passé (ou celui-ci).
+        ("en" | "in", m) if mois(m).is_some() => {
             let m = mois(m)?;
             let a = if m <= aujourdhui.month() { aujourdhui.year() } else { aujourdhui.year() - 1 };
             (2, mois_entier(a, m))
@@ -226,11 +270,11 @@ fn date(s: &[String], i: usize, aujourdhui: NaiveDate) -> Option<(usize, Periode
 /// (multiplicateur, étiquette)
 fn unite(mot: &str) -> Option<(u64, &'static str)> {
     Some(match mot {
-        "o" | "octet" | "octets" | "b" => (1, "o"),
-        "k" | "ko" | "kb" => (1 << 10, "Ko"),
-        "m" | "mo" | "mb" => (1 << 20, "Mo"),
-        "g" | "go" | "gb" => (1 << 30, "Go"),
-        "t" | "to" | "tb" => (1 << 40, "To"),
+        "o" | "octet" | "octets" | "b" | "byte" | "bytes" => (1, t("o", "B")),
+        "k" | "ko" | "kb" => (1 << 10, t("Ko", "KB")),
+        "m" | "mo" | "mb" => (1 << 20, t("Mo", "MB")),
+        "g" | "go" | "gb" => (1 << 30, t("Go", "GB")),
+        "t" | "to" | "tb" => (1 << 40, t("To", "TB")),
         _ => return None,
     })
 }
@@ -244,6 +288,10 @@ fn taille(origine: &[String], s: &[String], i: usize) -> Option<(usize, bool, u6
         ("<" | "≤", _, _) => (1, false),
         (_, "plus", "de") | (_, "superieur" | "superieure", "a") | (_, "au", "dessus") => (2, true),
         (_, "moins", "de") | (_, "inferieur" | "inferieure", "a") | (_, "en", "dessous") => (2, false),
+        (_, "more" | "larger" | "bigger" | "greater", "than") => (2, true),
+        (_, "less" | "smaller", "than") => (2, false),
+        (_, "over" | "above", _) => (1, true),
+        (_, "under" | "below", _) => (1, false),
         _ => return None,
     };
     // « au-dessus de », « en dessous de » : le « de » est pris avec.
@@ -269,7 +317,8 @@ pub fn analyser_au(texte: &str, aujourdhui: NaiveDate) -> Analyse {
     let mut par_type = false;
     while i < s.len() {
         let mot = s[i].as_str();
-        let n = if let Some((_, genres, etiquette)) = TYPES.iter().find(|(mots, _, _)| mots.contains(&mot)) {
+        let n = if let Some((_, genres, fr, en)) = TYPES.iter().find(|(mots, _, _, _)| mots.contains(&mot)) {
+            let etiquette = &t(fr, en);
             for g in genres.iter() {
                 if !a.filtre.genres.contains(g) {
                     a.filtre.genres.push(g);
@@ -325,28 +374,31 @@ pub fn analyser_au(texte: &str, aujourdhui: NaiveDate) -> Analyse {
     a
 }
 
-/// « 3 mars 2024 » (heure locale).
+/// « 3 mars 2024 », « March 3, 2024 » (heure locale).
 pub fn date_lisible(secondes: i64) -> String {
     match Local.timestamp_opt(secondes, 0).earliest() {
-        Some(t) => format!("{} {} {}", t.day(), MOIS_LISIBLES[t.month0() as usize], t.year()),
+        Some(d) if francais() => format!("{} {} {}", d.day(), nom_du_mois(d.month()), d.year()),
+        Some(d) => format!("{} {}, {}", nom_du_mois(d.month()), d.day(), d.year()),
         None => String::new(),
     }
 }
 
-/// « 2,3 Mo », « 812 Ko », « 4 octets ».
+/// « 2,3 Mo », « 812 Ko », « 4 octets » ; en anglais « 2.3 MB ».
 pub fn taille_lisible(octets: u64) -> String {
-    const UNITES: [&str; 4] = ["Ko", "Mo", "Go", "To"];
+    let unites = if francais() { ["Ko", "Mo", "Go", "To"] } else { ["KB", "MB", "GB", "TB"] };
     if octets < 1024 {
-        return format!("{octets} octet{}", if octets > 1 { "s" } else { "" });
+        let pluriel = if octets > 1 { "s" } else { "" };
+        return format!("{octets} {}{pluriel}", t("octet", "byte"));
     }
     let mut x = octets as f64 / 1024.0;
     let mut u = 0;
-    while x >= 1024.0 && u < UNITES.len() - 1 {
+    while x >= 1024.0 && u < unites.len() - 1 {
         x /= 1024.0;
         u += 1;
     }
     let texte = if x < 10.0 { format!("{x:.1}") } else { format!("{x:.0}") };
-    format!("{} {}", texte.replace('.', ","), UNITES[u])
+    let texte = if francais() { texte.replace('.', ",") } else { texte };
+    format!("{texte} {}", unites[u])
 }
 
 #[cfg(test)]
@@ -354,8 +406,27 @@ mod tests {
     use super::*;
 
     fn au(texte: &str) -> Analyse {
+        // Les étiquettes en français (les tests de l'anglais choisissent leur langue).
+        crate::langue::definir(crate::langue::Langue::Francais);
         // Un lundi : le 9 novembre 2026.
         analyser_au(texte, NaiveDate::from_ymd_opt(2026, 11, 9).unwrap())
+    }
+
+    #[test]
+    fn en_anglais() {
+        let a = au("pictures of my dog 2024");
+        assert_eq!(a.reste, "dog");
+        assert_eq!(a.filtre.genres, vec!["photo"]);
+        assert_eq!((a.filtre.depuis, a.filtre.avant), (Some(jour(2024, 1, 1)), Some(jour(2025, 1, 1))));
+        let a = au("videos larger than 1 GB");
+        assert_eq!((a.reste.as_str(), a.filtre.taille_min), ("", Some(1 << 30)));
+        let a = au("invoice modified last week");
+        assert_eq!(a.reste, "invoice");
+        assert_eq!((a.filtre.depuis, a.filtre.avant), (Some(jour(2026, 11, 2)), Some(jour(2026, 11, 9))));
+        assert_eq!(au("contract before 2020").filtre.avant, Some(jour(2020, 1, 1)));
+        assert_eq!(au("photos in december").filtre.depuis, Some(jour(2025, 12, 1)));
+        assert_eq!(au("notes yesterday").filtre.depuis, Some(jour(2026, 11, 8)));
+        assert_eq!(au("songs under 5 mb").filtre.taille_max, Some(5 << 20));
     }
 
     fn jour(a: i32, m: u32, j: u32) -> i64 {

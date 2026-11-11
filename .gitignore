@@ -17,3 +17,6 @@ node_modules/
 *.key
 *.key.pub
 .env
+
+# Exemples des captures du README
+/demo/

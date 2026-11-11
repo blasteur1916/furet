@@ -35,7 +35,13 @@ static TENU: std::sync::OnceLock<&'static str> = std::sync::OnceLock::new();
 /// Le raccourci qui ouvre la barre, pour le montrer.
 #[tauri::command]
 pub fn raccourci_actuel() -> String {
-    TENU.get().map_or_else(|| "aucun (tous pris par d'autres programmes)".into(), |r| (*r).into())
+    let t = furet_moteur::langue::t;
+    match TENU.get() {
+        Some(r) if furet_moteur::langue::francais() => (*r).into(),
+        // « Alt+Espace » → « Alt+Space », « Ctrl+Maj+Espace » → « Ctrl+Shift+Space ».
+        Some(r) => r.replace("Espace", "Space").replace("Maj", "Shift"),
+        None => t("aucun (tous pris par d'autres programmes)", "none (all taken by other programs)").into(),
+    }
 }
 
 /// Au premier lancement : l'île s'ouvre d'elle-même sur l'accueil.

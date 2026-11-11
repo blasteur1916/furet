@@ -74,7 +74,21 @@ pub fn ouvrir(chemin: &Path) -> Result<Connection> {
              cle TEXT NOT NULL
          );",
     )?;
-    // Index créés par une version précédente : ajouter les colonnes manquantes.
+    // Les lieux des photos (lieux.rs) : ville, région, pays, et tous leurs noms (normalisés, séparés par |).
+    base.execute_batch(
+        "CREATE TABLE IF NOT EXISTS lieux (
+             id INTEGER PRIMARY KEY,
+             ville TEXT NOT NULL,
+             region TEXT NOT NULL,
+             pays TEXT NOT NULL,
+             noms_ville TEXT NOT NULL,
+             noms_region TEXT NOT NULL,
+             noms_pays TEXT NOT NULL,
+             UNIQUE (ville, region, pays)
+         );",
+    )?;
+    // Index créés par une version précédente : ajouter les colonnes manquantes (avant tout index SQL qui les
+    // utilise : sur un index neuf, `fichiers.lieu_id` n'existe qu'après cette boucle).
     for (table, colonne, genre) in [
         ("morceaux", "nature", "TEXT"),
         ("fichiers", "ocr_ms", "REAL"),
@@ -89,6 +103,7 @@ pub fn ouvrir(chemin: &Path) -> Result<Connection> {
         ("fichiers", "prise", "INTEGER"),
         ("fichiers", "lieu_id", "INTEGER"),
         ("fichiers", "essai", "INTEGER"),
+        ("lieux", "pays_en", "TEXT"),
     ] {
         let existe: bool = base.query_row(
             &format!("SELECT COUNT(*) > 0 FROM pragma_table_info('{table}') WHERE name = '{colonne}'"),
@@ -99,6 +114,7 @@ pub fn ouvrir(chemin: &Path) -> Result<Connection> {
             base.execute_batch(&format!("ALTER TABLE {table} ADD COLUMN {colonne} {genre};"))?;
         }
     }
+    base.execute_batch("CREATE INDEX IF NOT EXISTS fichiers_lieu ON fichiers(lieu_id);")?;
     // Les mots exacts (FTS5) et le journal que suit l'index rapide (vecteurs.rs). Les déclencheurs
     // tiennent le journal quel que soit le programme qui indexe, et vident les textes des morceaux retirés
     // (aussi quand ils partent avec leur fichier).
@@ -129,20 +145,6 @@ pub fn ouvrir(chemin: &Path) -> Result<Connection> {
              prenom TEXT
          );
          CREATE INDEX IF NOT EXISTS visages_fichier ON visages(fichier_id);",
-    )?;
-    // Les lieux des photos (lieux.rs) : ville, région, pays, et tous leurs noms (normalisés, séparés par |).
-    base.execute_batch(
-        "CREATE TABLE IF NOT EXISTS lieux (
-             id INTEGER PRIMARY KEY,
-             ville TEXT NOT NULL,
-             region TEXT NOT NULL,
-             pays TEXT NOT NULL,
-             noms_ville TEXT NOT NULL,
-             noms_region TEXT NOT NULL,
-             noms_pays TEXT NOT NULL,
-             UNIQUE (ville, region, pays)
-         );
-         CREATE INDEX IF NOT EXISTS fichiers_lieu ON fichiers(lieu_id);",
     )?;
     // Index d'avant les mots exacts : leur texte n'a pas été gardé. Les fichiers qui en ont sont relus une fois.
     if !textes_existaient {
@@ -289,9 +291,10 @@ impl Resultat {
         let n = self.debut as u32;
         let moment = || self.fin.map(|f| format!("{}–{}", horodatage(self.debut), horodatage(f))).unwrap_or_default();
         // Index d'une très ancienne version : pas de nature, on la déduit du type.
+        use crate::langue::t;
         let dans = |p: String| match &self.partie {
-            Some(partie) if p.is_empty() => format!("dans {partie}"),
-            Some(partie) => format!("dans {partie}, {p}"),
+            Some(partie) if p.is_empty() => format!("{} {partie}", t("dans", "in")),
+            Some(partie) => format!("{} {partie}, {p}", t("dans", "in")),
             None => p,
         };
         let nature = self.nature.as_deref().unwrap_or(match self.genre.as_str() {
@@ -301,15 +304,15 @@ impl Resultat {
         });
         dans(match nature {
             "page" => format!("page {n}"),
-            "page_ocr" => format!("page {n} (texte lu)"),
-            "diapo" => format!("diapo {n}"),
-            "feuille" => format!("feuille {n}"),
-            "ligne" => format!("ligne {n}"),
-            "texte_image" => "texte lu dans l'image".into(),
-            "plan" => format!("image {}", moment()),
-            "son" if self.genre == "video" => format!("son {}", moment()),
+            "page_ocr" => format!("page {n} ({})", t("texte lu", "scanned")),
+            "diapo" => format!("{} {n}", t("diapo", "slide")),
+            "feuille" => format!("{} {n}", t("feuille", "sheet")),
+            "ligne" => format!("{} {n}", t("ligne", "line")),
+            "texte_image" => t("texte lu dans l'image", "text in the image").into(),
+            "plan" => format!("{} {}", t("image", "frame"), moment()),
+            "son" if self.genre == "video" => format!("{} {}", t("son", "sound"), moment()),
             "son" => moment(),
-            "parole" => format!("dit {}", moment()),
+            "parole" => format!("{} {}", t("dit", "says"), moment()),
             _ => String::new(),
         })
     }
@@ -526,6 +529,18 @@ pub fn lister(base: &Connection, filtre: &crate::filtres::Filtre, n: usize) -> R
 
 #[cfg(test)]
 mod tests {
+    /// Un index neuf (premier lancement) s'ouvre, et se rouvre (les ajouts de colonnes ne cassent rien).
+    #[test]
+    fn index_neuf() {
+        let chemin = std::env::temp_dir().join(format!("furet-neuf-{}.sqlite", std::process::id()));
+        let _ = std::fs::remove_file(&chemin);
+        drop(super::ouvrir(&chemin).expect("index neuf"));
+        drop(super::ouvrir(&chemin).expect("index rouvert"));
+        for suffixe in ["", "-wal", "-shm"] {
+            let _ = std::fs::remove_file(format!("{}{suffixe}", chemin.display()));
+        }
+    }
+
     /// Vitesse de recherche quand l'index grossit (tout un PC) :
     /// cargo test --release vitesse_recherche -- --ignored --nocapture
     #[test]

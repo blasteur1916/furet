@@ -22,7 +22,7 @@ Le **prototype Rust en ligne de commande** est fait : `proto/` (`furet-proto ind
 
 L'utilisateur l'a testé sur un vrai dossier (328 fichiers) : ça marche. Seuil réglé (correction des « aimants », 256 dimensions). Le prototype est terminé.
 
-**Le vrai logiciel** est commencé (licence **GPL-3.0**). Plan en 9 étapes validé, chacune à faire valider. Nom définitif : **Furet** ; version **1.0.0** (11 novembre 2026) :
+**Le vrai logiciel** est commencé (licence **GPL-3.0**). Plan en 9 étapes validé, chacune à faire valider. Nom définitif : **Furet** ; version **0.9.0**, bêta publique (11 novembre 2026), en anglais et en français (`moteur/src/langue.rs`, `app/src/i18n.ts` : chaque texte écrit `tr("…", "…")` ; la langue suit Windows ou le réglage, `FURET_LANGUE=en` pour les essais) :
 1. squelette : l'île et la barre, Alt+Espace, recherche dans l'index existant — fait ;
 2. résultats riches (miniatures Windows, ligne « pourquoi ») — fait ;
 3. indexation en arrière-plan dans l'appli (dossiers et options dans les réglages, roue à droite de la barre ; pause sur batterie, jeu, plein écran ou à la demande, qui arrête aussi le llama-server d'indexation) — fait ;
@@ -45,7 +45,7 @@ L'utilisateur l'a testé sur un vrai dossier (328 fichiers) : ça marche. Seuil 
    - réglages : démarrage avec Windows, raccourci actuel, « À propos » (licences, GeoNames, conditions de Gemma), défilement ;
 9. installateur et mises à jour — fait, **à valider** :
    - `pnpm tauri build` dans `app/` → `target\release\bundle\nsis\Furet_<version>_x64-setup.exe` (11 Mo, installation sans droits administrateur, sans les modèles) ;
-   - mises à jour (`app/src-tauri/src/mises_a_jour.rs`, tauri-plugin-updater) : vérifiées 1 min après le lancement puis toutes les 6 h, téléchargées et vérifiées en arrière-plan, installées par « Redémarrer pour mettre à jour » dans les réglages. Clé privée de signature : `%USERPROFILE%\.tauri\furet-mises-a-jour.key` (hors du projet, sans mot de passe ; ne jamais l'afficher ni la publier ; la perdre empêche toute mise à jour). Construire avec `TAURI_SIGNING_PRIVATE_KEY` = ce chemin et `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` vide, puis `node scripts/latest.mjs "notes"` prépare `latest.json`. Page des versions : `github.com/blasteur1916/furet` (dépôt privé pour l'instant : les mises à jour demandent qu'il soit public) ;
+   - mises à jour (`app/src-tauri/src/mises_a_jour.rs`, tauri-plugin-updater) : vérifiées 1 min après le lancement puis toutes les 6 h, téléchargées et vérifiées en arrière-plan, installées par « Redémarrer pour mettre à jour » dans les réglages. Clé privée de signature : `%USERPROFILE%\.tauri\furet-mises-a-jour.key` (hors du projet, sans mot de passe ; ne jamais l'afficher ni la publier ; la perdre empêche toute mise à jour). Construire avec `TAURI_SIGNING_PRIVATE_KEY` = ce chemin et `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` vide, puis `node scripts/latest.mjs "notes"` prépare `latest.json`. Page des versions : `github.com/blasteur1916/furet` (public) ;
    - démarrage avec Windows (tauri-plugin-autostart, argument `--demarrage`), réglage activé par défaut ;
    - pas encore : signature de l'installateur (certificat payant, décision de l'utilisateur ; sans lui, SmartScreen avertit) et service MFT (reporté : un service système qui lit tous les noms des disques demande des droits administrateur et une protection soignée, pour un gain faible).
 

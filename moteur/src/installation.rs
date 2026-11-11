@@ -36,8 +36,9 @@ enum Forme {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Paquet {
-    /// Ce que voit l'utilisateur.
-    pub nom: &'static str,
+    /// Ce que voit l'utilisateur, en français et en anglais (voir `nom()`).
+    nom_fr: &'static str,
+    nom_en: &'static str,
     pub groupe: Groupe,
     url: &'static str,
     /// Octets à télécharger.
@@ -63,7 +64,8 @@ fn dernier(chemin: &str) -> &str {
 #[cfg(windows)]
 pub const PAQUETS: [Paquet; 11] = [
     Paquet {
-        nom: "Moteur de recherche (processeur)",
+        nom_fr: "Moteur de recherche (processeur)",
+        nom_en: "Search engine (CPU)",
         groupe: Groupe::Essentiel,
         url: "https://github.com/ggml-org/llama.cpp/releases/download/b12202/llama-b12202-bin-win-cpu-x64.zip",
         taille: 24_759_273,
@@ -72,7 +74,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "outils/llama-cpu/llama-server.exe",
     },
     Paquet {
-        nom: "Moteur de recherche (carte graphique)",
+        nom_fr: "Moteur de recherche (carte graphique)",
+        nom_en: "Search engine (GPU)",
         groupe: Groupe::Essentiel,
         url: "https://github.com/ggml-org/llama.cpp/releases/download/b12202/llama-b12202-bin-win-vulkan-x64.zip",
         taille: 37_715_166,
@@ -81,7 +84,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "outils/llama-vulkan/llama-server.exe",
     },
     Paquet {
-        nom: "Modèle EmbeddingGemma 2",
+        nom_fr: "Modèle EmbeddingGemma 2",
+        nom_en: "EmbeddingGemma 2 model",
         groupe: Groupe::Essentiel,
         url: "https://huggingface.co/ggml-org/embeddinggemma-2-GGUF/resolve/main/embeddinggemma-2-Q8_0.gguf",
         taille: 309_855_456,
@@ -90,7 +94,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "modeles/embeddinggemma-2-Q8_0.gguf",
     },
     Paquet {
-        nom: "Modèle EmbeddingGemma 2 (images et sons)",
+        nom_fr: "Modèle EmbeddingGemma 2 (images et sons)",
+        nom_en: "EmbeddingGemma 2 model (images and sound)",
         groupe: Groupe::Essentiel,
         url: "https://huggingface.co/ggml-org/embeddinggemma-2-GGUF/resolve/main/mmproj-embeddinggemma-2-Q8_0.gguf",
         taille: 554_821_056,
@@ -99,7 +104,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "modeles/mmproj-embeddinggemma-2-Q8_0.gguf",
     },
     Paquet {
-        nom: "Lecteur de PDF (PDFium)",
+        nom_fr: "Lecteur de PDF (PDFium)",
+        nom_en: "PDF reader (PDFium)",
         groupe: Groupe::Essentiel,
         url: "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium%2F8138/pdfium-win-x64.tgz",
         taille: 4_031_929,
@@ -112,7 +118,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "outils/pdfium/bin/pdfium.dll",
     },
     Paquet {
-        nom: "Lecteur de sons et de vidéos (FFmpeg)",
+        nom_fr: "Lecteur de sons et de vidéos (FFmpeg)",
+        nom_en: "Audio and video reader (FFmpeg)",
         groupe: Groupe::Essentiel,
         url: "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip",
         taille: 114_768_076,
@@ -125,7 +132,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "outils/ffmpeg/ffprobe.exe",
     },
     Paquet {
-        nom: "Villes du monde (GeoNames)",
+        nom_fr: "Villes du monde (GeoNames)",
+        nom_en: "World cities (GeoNames)",
         groupe: Groupe::Essentiel,
         url: "https://download.geonames.org/export/dump/cities15000.zip",
         taille: 3_600_000,
@@ -134,7 +142,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "modeles/lieux/villes.tsv",
     },
     Paquet {
-        nom: "Transcription (sherpa-onnx)",
+        nom_fr: "Transcription (sherpa-onnx)",
+        nom_en: "Speech recognition (sherpa-onnx)",
         groupe: Groupe::Transcription,
         url: "https://github.com/k2-fsa/sherpa-onnx/releases/download/v2.0.1/sherpa-onnx-v2.0.1-win-x64-shared-MD-Release-no-tts.tar.bz2",
         taille: 20_962_760,
@@ -148,7 +157,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "outils/sherpa-onnx/sherpa-onnx-v2.0.1-win-x64-shared-MD-Release-no-tts/bin/sherpa-onnx-offline-websocket-server.exe",
     },
     Paquet {
-        nom: "Modèle de transcription Parakeet v3",
+        nom_fr: "Modèle de transcription Parakeet v3",
+        nom_en: "Parakeet v3 speech model",
         groupe: Groupe::Transcription,
         url: "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8.tar.bz2",
         taille: 487_211_443,
@@ -161,7 +171,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "modeles/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8/encoder.int8.onnx",
     },
     Paquet {
-        nom: "Détection des visages (YuNet)",
+        nom_fr: "Détection des visages (YuNet)",
+        nom_en: "Face detection (YuNet)",
         groupe: Groupe::Visages,
         url: "https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx",
         taille: 232_589,
@@ -170,7 +181,8 @@ pub const PAQUETS: [Paquet; 11] = [
         present: "modeles/visages/face_detection_yunet_2023mar.onnx",
     },
     Paquet {
-        nom: "Reconnaissance des visages (SFace)",
+        nom_fr: "Reconnaissance des visages (SFace)",
+        nom_en: "Face recognition (SFace)",
         groupe: Groupe::Visages,
         url: "https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx",
         taille: 38_696_353,
@@ -195,6 +207,10 @@ const LIEUX_SOURCES: [(&str, &str); 4] = [
 ];
 
 impl Paquet {
+    pub fn nom(&self) -> &'static str {
+        crate::langue::t(self.nom_fr, self.nom_en)
+    }
+
     pub fn est_installe(&self, racine: &Path) -> bool {
         racine.join(self.present).exists()
     }
@@ -225,7 +241,7 @@ pub fn installer(
     let dossier = racine.join("telechargements");
     fs::create_dir_all(&dossier)?;
     for p in paquets {
-        let mut sur = |fait: u64| suivi(Avancement { fait: avant + fait.min(p.taille), total, nom: p.nom });
+        let mut sur = |fait: u64| suivi(Avancement { fait: avant + fait.min(p.taille), total, nom: p.nom() });
         sur(0);
         match p.forme {
             Forme::Lieux => installer_lieux(racine, &dossier, arret)?,
@@ -237,15 +253,19 @@ pub fn installer(
                     let lu = empreinte(&archive)?;
                     if lu != attendu {
                         let _ = fs::remove_file(&archive);
-                        bail!("« {} » est arrivé abîmé (empreinte différente) : il sera retéléchargé", p.nom);
+                        bail!(
+                            "{}",
+                            crate::langue::t("« {} » est arrivé abîmé : il sera retéléchargé", "“{}” arrived damaged: it will be downloaded again")
+                                .replace("{}", p.nom())
+                        );
                     }
                 }
-                ranger(racine, &archive, forme).with_context(|| format!("installation de « {} »", p.nom))?;
+                ranger(racine, &archive, forme).with_context(|| format!("{} {}", crate::langue::t("installation de", "installing"), p.nom()))?;
                 let _ = fs::remove_file(&archive);
             }
         }
         avant += p.taille;
-        suivi(Avancement { fait: avant, total, nom: p.nom });
+        suivi(Avancement { fait: avant, total, nom: p.nom() });
     }
     let _ = fs::remove_dir(&dossier);
     Ok(())

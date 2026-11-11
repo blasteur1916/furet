@@ -41,26 +41,42 @@ export function useIndexation(): EtatIndexation {
   return etat;
 }
 
-const nombre = (n: number) => n.toLocaleString("fr-FR");
+import { nombre, tr } from "../i18n";
+
+/** Pourquoi l'indexation est en pause (codes de `indexeur.rs`). */
+const raisons: Record<string, [string, string]> = {
+  manuelle: ["à la demande", "on request"],
+  batterie: ["sur batterie", "on battery"],
+  jeu: ["jeu ou plein écran", "game or full screen"],
+};
 
 /** « Lecture : 1 240 fichiers sur 5 000 », « À jour »… */
 export function decrire(e: EtatIndexation): string {
   switch (e.phase) {
     case "attente":
-      return "Aucun dossier à indexer";
+      return tr("Aucun dossier à indexer", "No folder to index");
     case "parcours":
-      return "Recherche des fichiers nouveaux ou modifiés…";
+      return tr("Recherche des fichiers nouveaux ou modifiés…", "Looking for new or changed files…");
     case "lecture":
-      return `Lecture : ${nombre(e.faits)} fichier${e.total > 1 ? "s" : ""} sur ${nombre(e.total)}`;
+      return tr(
+        `Lecture : ${nombre(e.faits)} fichier${e.total > 1 ? "s" : ""} sur ${nombre(e.total)}`,
+        `Reading: ${nombre(e.faits)} of ${nombre(e.total)} file${e.total > 1 ? "s" : ""}`,
+      );
     case "visages":
-      return `Reconnaissance des visages : ${nombre(e.faits)} photo${e.total > 1 ? "s" : ""} sur ${nombre(e.total)}`;
+      return tr(
+        `Reconnaissance des visages : ${nombre(e.faits)} photo${e.total > 1 ? "s" : ""} sur ${nombre(e.total)}`,
+        `Recognizing faces: ${nombre(e.faits)} of ${nombre(e.total)} photo${e.total > 1 ? "s" : ""}`,
+      );
     case "transcription":
-      return `Transcription de la parole : ${nombre(e.faits)} sur ${nombre(e.total)}`;
+      return tr(
+        `Transcription de la parole : ${nombre(e.faits)} sur ${nombre(e.total)}`,
+        `Transcribing speech: ${nombre(e.faits)} of ${nombre(e.total)}`,
+      );
     case "pause":
-      return `Indexation en pause (${e.raison})`;
+      return tr(`Indexation en pause (${raisons[e.raison]?.[0] ?? e.raison})`, `Indexing paused (${raisons[e.raison]?.[1] ?? e.raison})`);
     case "a_jour":
-      return "Index à jour";
+      return tr("Index à jour", "Index up to date");
     case "erreur":
-      return "L'indexation a rencontré une erreur";
+      return tr("L'indexation a rencontré une erreur", "Indexing ran into an error");
   }
 }

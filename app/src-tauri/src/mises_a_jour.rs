@@ -58,7 +58,7 @@ pub fn mise_a_jour_prete() -> Option<String> {
 #[tauri::command]
 pub fn installer_mise_a_jour(app: AppHandle) -> Result<(), String> {
     let Some((update, octets)) = PRETE.lock().unwrap_or_else(|e| e.into_inner()).take() else {
-        return Err("aucune mise à jour prête".into());
+        return Err(furet_moteur::langue::t("aucune mise à jour prête", "no update ready").into());
     };
     crate::recherche::arreter();
     update.install(octets).map_err(|e| e.to_string())?;

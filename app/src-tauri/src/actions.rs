@@ -9,7 +9,7 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 use crate::{historique, raccourci, recherche};
 
 fn chemin(cle: &str) -> Result<PathBuf, String> {
-    recherche::chemin_offert(cle).ok_or_else(|| "fichier inconnu : cherchez à nouveau".into())
+    recherche::chemin_offert(cle).ok_or_else(|| furet_moteur::langue::t("fichier inconnu : cherchez à nouveau", "unknown file: search again").into())
 }
 
 #[tauri::command]
@@ -52,7 +52,7 @@ pub fn glisser(app: AppHandle, cle: String) -> Result<(), String> {
     #[cfg(not(windows))]
     {
         let _ = (app, c);
-        Err("pas encore possible sur ce système".into())
+        Err(furet_moteur::langue::t("pas encore possible sur ce système", "not available on this system yet").into())
     }
 }
 

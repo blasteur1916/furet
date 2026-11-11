@@ -9,6 +9,7 @@ pub mod fichiers;
 pub mod filtres;
 pub mod indexation;
 pub mod installation;
+pub mod langue;
 pub mod lieux;
 pub mod mesures;
 pub mod noms;
