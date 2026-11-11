@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissions de la fenêtre de l'île",
+  "windows": ["ile"],
+  "permissions": ["core:default"]
+}

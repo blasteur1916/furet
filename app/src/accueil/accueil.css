@@ -1,0 +1,86 @@
+/* L'accueil du premier lancement : mêmes blocs que les réglages, plus un en-tête et le téléchargement. */
+.accueil-tete {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 4px 14px;
+}
+
+.accueil-titre {
+  font: 600 20px var(--font-display);
+}
+
+.accueil-texte {
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--text-2);
+}
+
+.accueil-poids {
+  color: var(--text-3);
+}
+
+.accueil-action {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 4px 4px;
+}
+
+.accueil-bouton {
+  height: 40px;
+  border-radius: 12px;
+  corner-shape: squircle;
+  background: var(--caret) !important;
+  font-size: 14px !important;
+  font-weight: 650;
+  color: #fff !important;
+  transition: filter 0.12s ease-out;
+}
+
+.accueil-bouton:hover {
+  filter: brightness(1.12);
+}
+
+.accueil-bouton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.accueil-note {
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text-3);
+}
+
+.accueil-note strong {
+  color: var(--text-2);
+}
+
+.accueil-barre {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.accueil-barre-plein {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--caret);
+  transition: width 0.25s ease-out;
+}
+
+.accueil-ligne {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.accueil-pret {
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--text-1);
+}

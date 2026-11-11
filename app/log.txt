@@ -1,0 +1,270 @@
+[2026-11-08 21:44:12] [error] handle_read_handshake error: websocketpp.transport:7 (End of File)
+[2026-11-08 21:44:12] [connect] WebSocket Connection 127.0.0.1:63802 v13 "" / 101
+[2026-11-08 21:44:12] [connect] WebSocket Connection 127.0.0.1:63803 v13 "" / 101
+[2026-11-08 21:44:17] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:17] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:17] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:17] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:17] [connect] WebSocket Connection 127.0.0.1:63809 v13 "" / 101
+[2026-11-08 21:44:17] [connect] WebSocket Connection 127.0.0.1:63810 v13 "" / 101
+[2026-11-08 21:44:18] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:18] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:19] [connect] WebSocket Connection 127.0.0.1:63811 v13 "" / 101
+[2026-11-08 21:44:21] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:21] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:21] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:21] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:21] [connect] WebSocket Connection 127.0.0.1:63814 v13 "" / 101
+[2026-11-08 21:44:23] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:23] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:25] [connect] WebSocket Connection 127.0.0.1:63817 v13 "" / 101
+[2026-11-08 21:44:25] [connect] WebSocket Connection 127.0.0.1:63818 v13 "" / 101
+[2026-11-08 21:44:27] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:27] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:27] [connect] WebSocket Connection 127.0.0.1:63819 v13 "" / 101
+[2026-11-08 21:44:27] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:27] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:28] [connect] WebSocket Connection 127.0.0.1:63820 v13 "" / 101
+[2026-11-08 21:44:28] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:28] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:28] [connect] WebSocket Connection 127.0.0.1:63823 v13 "" / 101
+[2026-11-08 21:44:29] [info] asio async_shutdown error: asio.system:10054 (Une connexion existante a dû être fermée par l’hôte distant.)
+[2026-11-08 21:44:29] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:29] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:29] [connect] WebSocket Connection 127.0.0.1:63824 v13 "" / 101
+[2026-11-08 21:44:29] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:29] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:29] [connect] WebSocket Connection 127.0.0.1:63825 v13 "" / 101
+[2026-11-08 21:44:29] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:29] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:29] [connect] WebSocket Connection 127.0.0.1:63826 v13 "" / 101
+[2026-11-08 21:44:29] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:29] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:29] [connect] WebSocket Connection 127.0.0.1:63827 v13 "" / 101
+[2026-11-08 21:44:30] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:30] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:30] [connect] WebSocket Connection 127.0.0.1:63828 v13 "" / 101
+[2026-11-08 21:44:31] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:31] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:31] [connect] WebSocket Connection 127.0.0.1:63829 v13 "" / 101
+[2026-11-08 21:44:31] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:31] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:32] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:32] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:32] [connect] WebSocket Connection 127.0.0.1:63831 v13 "" / 101
+[2026-11-08 21:44:32] [connect] WebSocket Connection 127.0.0.1:63832 v13 "" / 101
+[2026-11-08 21:44:32] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:32] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:32] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:32] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:32] [connect] WebSocket Connection 127.0.0.1:63834 v13 "" / 101
+[2026-11-08 21:44:32] [connect] WebSocket Connection 127.0.0.1:63836 v13 "" / 101
+[2026-11-08 21:44:33] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:33] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:33] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:33] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:33] [connect] WebSocket Connection 127.0.0.1:63838 v13 "" / 101
+[2026-11-08 21:44:33] [connect] WebSocket Connection 127.0.0.1:63845 v13 "" / 101
+[2026-11-08 21:44:33] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:33] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:33] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:33] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:33] [connect] WebSocket Connection 127.0.0.1:63847 v13 "" / 101
+[2026-11-08 21:44:33] [connect] WebSocket Connection 127.0.0.1:63848 v13 "" / 101
+[2026-11-08 21:44:33] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:33] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:34] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:34] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:34] [connect] WebSocket Connection 127.0.0.1:63849 v13 "" / 101
+[2026-11-08 21:44:34] [connect] WebSocket Connection 127.0.0.1:63850 v13 "" / 101
+[2026-11-08 21:44:34] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:34] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:34] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:34] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:35] [connect] WebSocket Connection 127.0.0.1:63852 v13 "" / 101
+[2026-11-08 21:44:35] [connect] WebSocket Connection 127.0.0.1:63853 v13 "" / 101
+[2026-11-08 21:44:35] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:35] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:35] [info] asio async_write error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:35] [fatal] handle_write_frame error: websocketpp.transport:2 (Underlying Transport Error)
+[2026-11-08 21:44:35] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:35] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:35] [connect] WebSocket Connection 127.0.0.1:63854 v13 "" / 101
+[2026-11-08 21:44:35] [connect] WebSocket Connection 127.0.0.1:63855 v13 "" / 101
+[2026-11-08 21:44:35] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:35] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:36] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:36] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:36] [connect] WebSocket Connection 127.0.0.1:63856 v13 "" / 101
+[2026-11-08 21:44:36] [connect] WebSocket Connection 127.0.0.1:63857 v13 "" / 101
+[2026-11-08 21:44:36] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:36] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:36] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:36] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:36] [connect] WebSocket Connection 127.0.0.1:63858 v13 "" / 101
+[2026-11-08 21:44:36] [connect] WebSocket Connection 127.0.0.1:63859 v13 "" / 101
+[2026-11-08 21:44:37] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:37] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:37] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:37] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:37] [connect] WebSocket Connection 127.0.0.1:63861 v13 "" / 101
+[2026-11-08 21:44:37] [connect] WebSocket Connection 127.0.0.1:63862 v13 "" / 101
+[2026-11-08 21:44:37] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:37] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:38] [connect] WebSocket Connection 127.0.0.1:63865 v13 "" / 101
+[2026-11-08 21:44:38] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:38] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:38] [connect] WebSocket Connection 127.0.0.1:63866 v13 "" / 101
+[2026-11-08 21:44:38] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:38] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:39] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:39] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:39] [info] asio async_write error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:39] [fatal] handle_write_frame error: websocketpp.transport:2 (Underlying Transport Error)
+[2026-11-08 21:44:39] [connect] WebSocket Connection 127.0.0.1:63867 v13 "" / 101
+[2026-11-08 21:44:39] [connect] WebSocket Connection 127.0.0.1:63868 v13 "" / 101
+[2026-11-08 21:44:39] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:39] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:39] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:39] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:39] [connect] WebSocket Connection 127.0.0.1:63870 v13 "" / 101
+[2026-11-08 21:44:39] [connect] WebSocket Connection 127.0.0.1:63871 v13 "" / 101
+[2026-11-08 21:44:42] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:42] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:44:42] [connect] WebSocket Connection 127.0.0.1:63873 v13 "" / 101
+[2026-11-08 21:44:44] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:44] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:45] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:45] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:50] [connect] WebSocket Connection 127.0.0.1:60552 v13 "" / 101
+[2026-11-08 21:44:50] [connect] WebSocket Connection 127.0.0.1:60553 v13 "" / 101
+[2026-11-08 21:44:54] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:54] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:54] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:54] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:54] [connect] WebSocket Connection 127.0.0.1:60560 v13 "" / 101
+[2026-11-08 21:44:54] [connect] WebSocket Connection 127.0.0.1:60561 v13 "" / 101
+[2026-11-08 21:44:58] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:58] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:58] [connect] WebSocket Connection 127.0.0.1:60565 v13 "" / 101
+[2026-11-08 21:44:58] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:44:58] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:44:59] [connect] WebSocket Connection 127.0.0.1:60566 v13 "" / 101
+[2026-11-08 21:45:02] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:02] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:02] [connect] WebSocket Connection 127.0.0.1:60570 v13 "" / 101
+[2026-11-08 21:45:04] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:04] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:04] [connect] WebSocket Connection 127.0.0.1:60574 v13 "" / 101
+[2026-11-08 21:45:04] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:04] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:05] [connect] WebSocket Connection 127.0.0.1:60575 v13 "" / 101
+[2026-11-08 21:45:05] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:05] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:06] [connect] WebSocket Connection 127.0.0.1:60578 v13 "" / 101
+[2026-11-08 21:45:06] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:06] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:07] [connect] WebSocket Connection 127.0.0.1:60579 v13 "" / 101
+[2026-11-08 21:45:08] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:08] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:08] [connect] WebSocket Connection 127.0.0.1:60580 v13 "" / 101
+[2026-11-08 21:45:10] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:10] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:10] [connect] WebSocket Connection 127.0.0.1:60583 v13 "" / 101
+[2026-11-08 21:45:11] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:11] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:11] [connect] WebSocket Connection 127.0.0.1:60584 v13 "" / 101
+[2026-11-08 21:45:11] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:11] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:11] [connect] WebSocket Connection 127.0.0.1:60585 v13 "" / 101
+[2026-11-08 21:45:11] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:11] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:12] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:12] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:14] [connect] WebSocket Connection 127.0.0.1:60586 v13 "" / 101
+[2026-11-08 21:45:14] [connect] WebSocket Connection 127.0.0.1:60587 v13 "" / 101
+[2026-11-08 21:45:15] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:15] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:15] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:15] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:15] [connect] WebSocket Connection 127.0.0.1:60588 v13 "" / 101
+[2026-11-08 21:45:15] [connect] WebSocket Connection 127.0.0.1:60589 v13 "" / 101
+[2026-11-08 21:45:16] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:16] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:16] [connect] WebSocket Connection 127.0.0.1:60592 v13 "" / 101
+[2026-11-08 21:45:17] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:17] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:18] [connect] WebSocket Connection 127.0.0.1:60593 v13 "" / 101
+[2026-11-08 21:45:20] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:20] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:21] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:21] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:21] [connect] WebSocket Connection 127.0.0.1:60596 v13 "" / 101
+[2026-11-08 21:45:21] [connect] WebSocket Connection 127.0.0.1:60597 v13 "" / 101
+[2026-11-08 21:45:22] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:22] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:23] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:23] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:23] [connect] WebSocket Connection 127.0.0.1:60598 v13 "" / 101
+[2026-11-08 21:45:23] [connect] WebSocket Connection 127.0.0.1:60601 v13 "" / 101
+[2026-11-08 21:45:23] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:23] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:24] [connect] WebSocket Connection 127.0.0.1:60602 v13 "" / 101
+[2026-11-08 21:45:25] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:25] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:25] [info] asio async_write error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:25] [fatal] handle_write_frame error: websocketpp.transport:2 (Underlying Transport Error)
+[2026-11-08 21:45:26] [connect] WebSocket Connection 127.0.0.1:60603 v13 "" / 101
+[2026-11-08 21:45:29] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:29] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:29] [connect] WebSocket Connection 127.0.0.1:60606 v13 "" / 101
+[2026-11-08 21:45:30] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:30] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:31] [connect] WebSocket Connection 127.0.0.1:60608 v13 "" / 101
+[2026-11-08 21:45:33] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:33] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:33] [connect] WebSocket Connection 127.0.0.1:60611 v13 "" / 101
+[2026-11-08 21:45:36] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:36] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:37] [connect] WebSocket Connection 127.0.0.1:54981 v13 "" / 101
+[2026-11-08 21:45:38] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:38] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:38] [connect] WebSocket Connection 127.0.0.1:54982 v13 "" / 101
+[2026-11-08 21:45:41] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:41] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:41] [connect] WebSocket Connection 127.0.0.1:54983 v13 "" / 101
+[2026-11-08 21:45:42] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:42] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:42] [connect] WebSocket Connection 127.0.0.1:54986 v13 "" / 101
+[2026-11-08 21:45:45] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:45] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:45] [connect] WebSocket Connection 127.0.0.1:54988 v13 "" / 101
+[2026-11-08 21:45:47] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:47] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:47] [connect] WebSocket Connection 127.0.0.1:54990 v13 "" / 101
+[2026-11-08 21:45:50] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:50] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:50] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:50] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:50] [connect] WebSocket Connection 127.0.0.1:54994 v13 "" / 101
+[2026-11-08 21:45:50] [connect] WebSocket Connection 127.0.0.1:54995 v13 "" / 101
+[2026-11-08 21:45:51] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:51] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:52] [connect] WebSocket Connection 127.0.0.1:54996 v13 "" / 101
+[2026-11-08 21:45:55] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:55] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:55] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:55] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:55] [connect] WebSocket Connection 127.0.0.1:59458 v13 "" / 101
+[2026-11-08 21:45:55] [connect] WebSocket Connection 127.0.0.1:59459 v13 "" / 101
+[2026-11-08 21:45:58] [info] asio async_shutdown error: asio.system:10054 (Une connexion existante a dû être fermée par l’hôte distant.)
+[2026-11-08 21:45:58] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:58] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:58] [connect] WebSocket Connection 127.0.0.1:59462 v13 "" / 101
+[2026-11-08 21:45:58] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:58] [error] handle_read_frame error: asio.system:10058 (Une demande d’envoi ou de réception de données n’a pas été autorisée car le socket avait déjà été éteint dans cette direction par un appel d’arrêt précédent.)
+[2026-11-08 21:45:58] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:45:58] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)
+[2026-11-08 21:45:59] [connect] WebSocket Connection 127.0.0.1:59463 v13 "" / 101
+[2026-11-08 21:46:00] [disconnect] Disconnect close local:[1000,Done] remote:[1005]
+[2026-11-08 21:46:00] [error] handle_read_frame error: asio.system:10053 (Une connexion établie a été abandonnée par un logiciel de votre ordinateur hôte.)

@@ -1,0 +1,28 @@
+[workspace]
+resolver = "3"
+members = ["moteur", "proto", "app/src-tauri"]
+
+[workspace.package]
+edition = "2024"
+license = "GPL-3.0-or-later"
+
+[workspace.dependencies]
+anyhow = "1.0.104"
+furet-moteur = { path = "moteur" }
+log = "0.4"
+rusqlite = { version = "0.41.1", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.154"
+
+# Pour essayer : optimisé, mais rapide à compiler (une à deux minutes au lieu de cinq).
+[profile.release]
+codegen-units = 16
+lto = "thin"
+opt-level = 3
+strip = true
+
+# Pour l'installateur : optimisation maximale (`--profile distribution`).
+[profile.distribution]
+inherits = "release"
+codegen-units = 1
+lto = true

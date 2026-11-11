@@ -1,0 +1,44 @@
+/* Repris de Quiera (src/island/island.css). */
+.ile-scene {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.ile {
+  position: relative;
+  flex: none;
+  pointer-events: auto;
+}
+
+.ile-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.ile-svg path {
+  fill: #000;
+}
+
+/* Suit la forme animée du corps ; ce qui dépasse est coupé. */
+.ile-clip {
+  position: absolute;
+  top: 0;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+/* Posé à sa taille finale dès le départ : jamais de remise en page pendant la déformation. */
+.ile-vue {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  color: var(--text-1);
+  font-family: var(--font-ui);
+}

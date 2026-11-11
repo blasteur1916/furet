@@ -1,0 +1,252 @@
+/* L'aperçu : il prend la place de la liste, sous la barre. */
+.apercu {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 562px;
+  padding: 0 2px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.apercu-tete {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 8px;
+}
+
+.apercu-titre {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.apercu-nom,
+.apercu-infos {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.apercu-nom {
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.apercu-infos {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--text-3);
+}
+
+.apercu-aide {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.apercu-aide kbd {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  font: inherit;
+  color: var(--text-2);
+}
+
+.apercu-corps {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 16px;
+  corner-shape: squircle;
+  background: #111114;
+}
+
+.apercu-corps--noir {
+  background: #000;
+}
+
+.apercu-corps--defile {
+  display: block;
+  /* Sinon les blocs du texte ou du dossier seraient centrés (alignement en mise en page bloc). */
+  place-items: normal;
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+}
+
+.apercu-corps--defile::-webkit-scrollbar {
+  width: 8px;
+}
+
+.apercu-corps--defile::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.18) padding-box;
+}
+
+/* L'image entière dans le cadre, quelle que soit sa forme. */
+.apercu-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Une icône agrandie reste petite : pas de flou. */
+.apercu-image--icone {
+  margin: auto;
+  width: 50%;
+  height: 50%;
+}
+
+.apercu-bandeau {
+  position: absolute;
+  bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.apercu-video {
+  width: 100%;
+  height: 100%;
+  outline: none;
+  color-scheme: dark;
+}
+
+.apercu-son {
+  grid-template-rows: 1fr auto;
+  gap: 18px;
+  padding: 28px;
+  box-sizing: border-box;
+}
+
+.apercu-pochette {
+  max-width: 220px;
+  max-height: 100%;
+  border-radius: 14px;
+  object-fit: contain;
+}
+
+.apercu-audio {
+  width: 100%;
+  color-scheme: dark;
+}
+
+.apercu-pdf {
+  background: #2a2a2e;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.apercu-page {
+  display: block;
+  width: 100%;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.apercu-texte {
+  padding: 10px 0;
+  font: 12px/1.6 "Cascadia Mono", Consolas, ui-monospace, monospace;
+  color: var(--text-2);
+}
+
+.apercu-bloc {
+  padding: 2px 14px;
+  border-left: 2px solid transparent;
+}
+
+/* Le passage trouvé. */
+.apercu-bloc--cible {
+  border-left-color: var(--caret);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.apercu-bloc-titre {
+  margin: 8px 0 4px;
+  font: 700 10.5px var(--font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.apercu-ligne {
+  display: flex;
+  gap: 14px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.apercu-num {
+  flex: none;
+  min-width: 34px;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.22);
+  user-select: none;
+}
+
+.apercu-para {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 13px/1.6 var(--font-ui);
+}
+
+.apercu-texte mark {
+  border-radius: 3px;
+  background: rgba(255, 214, 10, 0.28);
+  color: var(--text-1);
+}
+
+.apercu-dossier {
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.apercu-entree {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  padding: 0 8px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.apercu-entree span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.apercu-entree svg {
+  flex: none;
+  color: var(--text-3);
+}
+
+.apercu-entree--dossier svg {
+  color: #64d2ff;
+}
+
+.apercu-vide {
+  padding: 8px;
+  font-size: 12px;
+  color: var(--text-3);
+}

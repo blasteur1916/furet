@@ -1,0 +1,247 @@
+.regl {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /* La hauteur de l'île au plus : au-delà, les sections défilent. */
+  max-height: 620px;
+  padding: 0 14px 12px;
+  color: var(--text-1);
+  font-family: var(--font-ui);
+}
+
+.regl button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.regl-tete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 58px;
+}
+
+.regl-retour {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--text-2);
+}
+
+.regl-retour:hover {
+  background: var(--selection);
+  color: var(--text-1);
+}
+
+.regl-titre {
+  font: 600 17px var(--font-display);
+}
+
+/* Tout ce qui est entre l'en-tête et le pied : défile si la page est plus haute que l'île. */
+.regl-defile {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.regl-apropos {
+  padding: 0 4px;
+  font-size: 11.5px;
+  line-height: 17px;
+  color: var(--text-3);
+}
+
+.regl-apropos p {
+  margin: 0 0 6px;
+}
+
+.regl-apropos strong {
+  color: var(--text-2);
+}
+
+.regl-section {
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.regl-sous-titre {
+  padding: 0 4px 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.regl-etat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  padding: 0 4px;
+  font-size: 13px;
+}
+
+.regl-etat-texte {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-2);
+}
+
+.regl-pastille {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+
+.regl-pastille--a_jour { background: #30d158; }
+.regl-pastille--lecture,
+.regl-pastille--transcription,
+.regl-pastille--parcours { background: var(--caret); }
+.regl-pastille--pause { background: #ff9f0a; }
+.regl-pastille--erreur { background: var(--danger); }
+
+.regl-lien {
+  flex: none;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px !important;
+  font-weight: 600;
+  color: var(--text-1) !important;
+  background: #1e1e22 !important;
+}
+
+.regl-lien:empty {
+  display: none;
+}
+
+.regl-lien:hover {
+  background: #2a2a2f !important;
+}
+
+.regl-dossiers {
+  max-height: 180px;
+  overflow-y: auto;
+  /* Une barre de défilement fine et sombre, pas celle, blanche, de Windows. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.regl-dossier {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 4px 0 8px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.regl-dossier:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.regl-dossier-nom {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.regl-retirer {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  font-size: 17px !important;
+  line-height: 1;
+  color: var(--text-3) !important;
+}
+
+.regl-retirer:hover {
+  background: rgba(255, 107, 94, 0.15) !important;
+  color: var(--danger) !important;
+}
+
+.regl-vide {
+  padding: 8px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.regl-ajouter {
+  margin-top: 4px;
+  padding: 8px;
+  border-radius: 9px;
+  text-align: left;
+  font-size: 13px !important;
+  font-weight: 600;
+  color: var(--caret) !important;
+}
+
+.regl-ajouter:hover {
+  background: rgba(10, 132, 255, 0.1) !important;
+}
+
+.regl-erreur {
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--danger);
+}
+
+.regl-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 36px;
+  padding: 0 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.regl-interrupteur {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: #3a3a3f !important;
+  transition: background 0.15s ease-out;
+}
+
+.regl-interrupteur--on {
+  background: #30d158 !important;
+}
+
+.regl-interrupteur-rond {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease-out;
+}
+
+.regl-interrupteur--on .regl-interrupteur-rond {
+  transform: translateX(16px);
+}
+
+.regl-pied {
+  padding: 10px 4px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 11px;
+  color: var(--text-3);
+}

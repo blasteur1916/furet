@@ -1,0 +1,25 @@
+/* Couleurs et polices de Quiera (src/styles/tokens.css). */
+:root {
+  --ink: #000000;
+  --card: #121214;
+  --card-hover: #1a1a1d;
+  --text-1: #ffffff;
+  --text-2: rgba(255, 255, 255, 0.62);
+  --text-3: rgba(255, 255, 255, 0.36);
+  --selection: rgba(255, 255, 255, 0.09);
+  --caret: #0a84ff;
+  --danger: #ff6b5e;
+
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+}
+
+/* La fenêtre de l'île est transparente : seule l'île se dessine. */
+html,
+body {
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+}

@@ -1,0 +1,345 @@
+/* D'après le lanceur de Quiera (src/modules/launcher/launcher.css). */
+.barre {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 0 10px;
+}
+
+.barre-champ {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  height: 58px;
+  padding: 0 12px;
+  color: var(--text-3);
+}
+
+.barre-saisie {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text-1);
+  font: 600 17px var(--font-ui);
+  caret-color: var(--caret);
+}
+
+.barre-saisie::placeholder {
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+/* La recherche par le contenu travaille encore : un point qui respire. */
+.barre-attente {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-2);
+  animation: respire 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes respire {
+  from {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+}
+
+.barre-liste {
+  padding: 6px 0 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  transition: opacity 0.12s ease-out;
+}
+
+/* Résultats d'une recherche précédente, gardés en attendant les nouveaux (pas de clignotement). */
+.barre-liste--ancienne {
+  opacity: 0.55;
+}
+
+.barre-titre {
+  height: 26px;
+  padding: 0 12px;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 4px;
+  box-sizing: border-box;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.barre-ligne {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  margin-bottom: 2px;
+  padding: 0 8px;
+  border-radius: 14px;
+  corner-shape: squircle;
+  cursor: pointer;
+}
+
+/* La surbrillance du résultat choisi : une seule, qui glisse d'un résultat à l'autre. */
+.barre-surbrillance {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 14px;
+  corner-shape: squircle;
+  background: var(--selection);
+}
+
+.barre-ligne > :not(.barre-surbrillance) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Le cadre de la miniature : le pictogramme du type dessous, la miniature Windows par-dessus. */
+.barre-mini {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 9px;
+  corner-shape: squircle;
+  background: #1c1c20;
+  color: var(--text-2);
+}
+
+.barre-mini--photo { color: #64d2ff; }
+.barre-mini--pdf { color: #ff6b5e; }
+.barre-mini--audio { color: #ff9f0a; }
+.barre-mini--video { color: #bf5af2; }
+.barre-mini--document { color: #4c9aff; }
+.barre-mini--tableur { color: #30d158; }
+.barre-mini--code { color: #ffd60a; }
+.barre-mini--dossier { color: #64d2ff; }
+.barre-mini--archive { color: #a2845e; }
+
+.barre-mini-img {
+  position: absolute;
+  inset: 4px;
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+}
+
+.barre-mini-img--couvrir {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.barre-mini-img--prete {
+  opacity: 1;
+}
+
+.barre-texte {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.barre-nom {
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-1);
+}
+
+.barre-nom strong {
+  font-weight: 800;
+}
+
+.barre-nom span {
+  color: var(--text-2);
+}
+
+.barre-pourquoi {
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-3);
+}
+
+.barre-indice {
+  flex: none;
+  max-width: 170px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.barre-indice {
+  color: var(--text-2);
+}
+
+.barre-message {
+  min-height: 40px;
+  line-height: 17px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* Le bouton des réglages, à droite de la barre. */
+.barre-bouton {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-right: -6px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+}
+
+.barre-bouton:hover {
+  background: var(--selection);
+  color: var(--text-1);
+}
+
+/* L'indexation, discrète : un petit anneau qui se remplit. */
+.anneau {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  color: var(--text-3);
+}
+
+.anneau svg {
+  transform: rotate(-90deg);
+}
+
+.anneau-fond {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 2;
+}
+
+.anneau-plein {
+  fill: none;
+  stroke: var(--caret);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease-out;
+}
+
+.anneau--tourne svg {
+  animation: tourne 1s linear infinite;
+}
+
+@keyframes tourne {
+  to {
+    transform: rotate(270deg);
+  }
+}
+
+.anneau--pause svg {
+  transform: none;
+  color: #ff9f0a;
+}
+
+.anneau--erreur::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--danger);
+}
+
+/* Dans l'extrait, les mots trouvés ressortent. */
+.barre-pourquoi strong {
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+/* Le dossier, discret, à côté du nom quand l'extrait occupe la deuxième ligne. */
+.barre-nom .barre-lieu {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+/* Les filtres compris dans la recherche (« Photos », « 2024 »), en pastilles à droite du texte. */
+.barre-filtres {
+  flex: none;
+  display: flex;
+  gap: 5px;
+  max-width: 260px;
+  overflow: hidden;
+}
+
+.barre-filtre {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(10, 132, 255, 0.18);
+  font-size: 11.5px;
+  font-weight: 650;
+  color: #8cc4ff;
+  white-space: nowrap;
+}
+
+/* Les actions du résultat choisi : aperçu, dossier, copier le chemin, ouvrir avec. */
+.barre-actions {
+  flex: none;
+  display: flex;
+  gap: 2px;
+}
+
+.barre-action {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+}
+
+.barre-action:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-1);
+}

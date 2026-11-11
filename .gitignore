@@ -1,0 +1,19 @@
+# Compilé
+/target/
+node_modules/
+/app/dist/
+/app/src-tauri/gen/
+
+# Données de l'utilisateur, outils et modèles téléchargés (au premier lancement sur les autres PC)
+/donnees/
+/modeles/
+/outils/
+
+# Journaux
+*.log
+/log.txt
+
+# Clés : jamais dans le dépôt
+*.key
+*.key.pub
+.env
