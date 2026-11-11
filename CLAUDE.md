@@ -1,4 +1,4 @@
-# Furet (nom provisoire)
+# Furet
 
 Appli Windows de recherche de fichiers **par leur contenu** (photos, PDF, Office, audio, vidéo, code) et **par leur nom**, dans une seule barre, entièrement en local. Elle remplace Quiera (une Dynamic Island pour Windows, arrêtée le 8 novembre 2026), dont le dépôt est dans `D:\nom a trouver`.
 
@@ -23,7 +23,7 @@ Le **prototype Rust en ligne de commande** est fait : `proto/` (`furet-proto ind
 
 L'utilisateur l'a testé sur un vrai dossier (328 fichiers) : ça marche. Seuil réglé (correction des « aimants », 256 dimensions). Le prototype est terminé.
 
-**Le vrai logiciel** est commencé (licence **GPL-3.0**, comme Quiera, dont l'utilisateur est l'auteur). Plan en 9 étapes validé, chacune à faire valider :
+**Le vrai logiciel** est commencé (licence **GPL-3.0**, comme Quiera, dont l'utilisateur est l'auteur). Plan en 9 étapes validé, chacune à faire valider. Nom définitif : **Furet** ; version **1.0.0** (11 novembre 2026) :
 1. squelette : l'île et la barre de Quiera, Alt+Espace, recherche dans l'index existant — fait ;
 2. résultats riches (miniatures Windows, ligne « pourquoi ») — fait ;
 3. indexation en arrière-plan dans l'appli (dossiers et options dans les réglages, roue à droite de la barre ; pause sur batterie, jeu, plein écran ou à la demande, qui arrête aussi le llama-server d'indexation) — fait ;
@@ -38,6 +38,7 @@ L'utilisateur l'a testé sur un vrai dossier (328 fichiers) : ça marche. Seuil 
    - archives .zip (`Genre::Archive`) : les photos, PDF, documents, textes et code qu'elles contiennent sont lus (copiés un instant dans un dossier temporaire) ; le résultat dit « dans notes/idees.txt » (colonne `morceaux.partie`) ;
    - lieux et dates des photos (`moteur/src/lieux.rs`) : GPS et date de prise de vue lus dans l'EXIF (kamadak-exif), ville la plus proche d'après `modeles/lieux/` (GeoNames, CC BY 4.0 : à citer dans « À propos »), table `lieux` ; « vacances Espagne », « photos Paris » mettent les photos prises là en tête ; « photos 2019 » utilise la date de prise de vue ;
    Optimisation (10 novembre, **à valider**) : seuil relevé pour les recherches qui ressemblent à des mots inventés (`pertinence::Charabia`), noms reclassés (fichiers souvent ouverts — `app/src-tauri/src/historique.rs`, `historique.json` —, dossiers de l'utilisateur, nom exact), « Récents » dans la barre vide, copies d'un même fichier fusionnées, recherche par le nom hors du fil de l'interface, recherches dépassées abandonnées, vecteurs des dernières recherches gardés, aperçu préparé à l'avance, surbrillance qui glisse ;
+   Optimisation de l'indexation (11 novembre, **à valider**) : parcours parallèle (`indexation::lister`, taille et date sans ouvrir les fichiers), état de l'index lu en une fois, noms plus réécrits par l'appli (`Options::noms`), code des grandes bibliothèques (> 3 000 fichiers de code : moteurs de jeu, SDK) par le nom seulement (réglage pour les lire quand même), très gros fichiers de texte allégés (40 passages puis 1 sur 4, 200 au plus ; les autres gardent leurs mots exacts), archives : seulement ce qu'une personne y range, rien pour les archives de logiciels, erreurs pas réessayées avant 7 jours, documents et photos lus avant le code, `synchronous = NORMAL`, mots exacts trop courants pas classés, mot trouvé au milieu d'un autre moins bien noté, dossiers de programmes vraiment reconnus (`disque::discret`). Index de l'utilisateur nettoyé une fois (`moteur/examples/nettoyer_bibliotheques.rs`, sauvegarde dans `donnees/sauvegarde-2026-11-11`) ;
 8. premier lancement — fait, **à valider** :
    - `moteur/src/installation.rs` : 11 paquets (llama.cpp b12202 processeur et Vulkan, EmbeddingGemma 2 et son mmproj, PDFium chromium/8138, FFmpeg 9.0.2, villes GeoNames ; Parakeet + sherpa-onnx si la transcription est voulue ; YuNet + SFace pour les visages), vérifiés par SHA-256, reprise des téléchargements coupés, seuls les fichiers utiles gardés ; essai complet : 1,5 Go en 4 min, puis index et recherche OK ;
    - dossier de Furet (`app/src-tauri/src/installation.rs`) : `FURET_RACINE`, sinon `racine` dans `reglages.json` (sur le PC de l'utilisateur : `D:\furet`), sinon `%LOCALAPPDATA%\app.furet` ; ffmpeg pris dans `outils/ffmpeg` (`processus::ffmpeg`) ;

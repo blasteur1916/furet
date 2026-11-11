@@ -172,6 +172,9 @@ export function Reglages({
           <Interrupteur actif={reglages.visages} onChange={(visages) => changer({ ...reglages, visages })}>
             Reconnaître les visages (« elliot.png » fait trouver Elliot partout)
           </Interrupteur>
+          <Interrupteur actif={reglages.bibliotheques} onChange={(bibliotheques) => changer({ ...reglages, bibliotheques })}>
+            Lire aussi les grandes bibliothèques de code (moteurs de jeu, SDK : très long)
+          </Interrupteur>
           <Interrupteur actif={reglages.pause_batterie} onChange={(pause_batterie) => changer({ ...reglages, pause_batterie })}>
             Pause quand le PC est sur batterie
           </Interrupteur>

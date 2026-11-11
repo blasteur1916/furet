@@ -1,6 +1,6 @@
 [package]
 name = "furet"
-version = "0.1.0"
+version = "1.0.0"
 description = "Retrouve n'importe quel fichier par ce qu'il contient ou par son nom, entièrement sur le PC."
 authors = ["Furet contributors"]
 edition.workspace = true

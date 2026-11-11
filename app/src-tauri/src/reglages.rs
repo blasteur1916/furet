@@ -26,6 +26,8 @@ pub struct Reglages {
     pub pause_batterie: bool,
     /// … et pendant un jeu ou une appli en plein écran.
     pub pause_jeu: bool,
+    /// Lire aussi le code des grandes bibliothèques (moteurs de jeu, SDK…), pas seulement leurs noms.
+    pub bibliotheques: bool,
     /// Lancer Furet avec Windows.
     pub demarrage: bool,
     /// Le dossier des outils, modèles et données, s'il n'est pas celui par défaut (développement).
@@ -42,6 +44,7 @@ impl Default for Reglages {
             visages: true,
             pause_batterie: true,
             pause_jeu: true,
+            bibliotheques: false,
             demarrage: true,
             racine: None,
         }

@@ -37,6 +37,9 @@ const DOSSIERS_MAX: usize = 2;
 const NOMS_A_FILTRER: usize = 400;
 /// Sans filtre, ce nombre de noms est reclassé (fichiers ouverts, dossiers de l'utilisateur, nom exact).
 const NOMS_A_RECLASSER: usize = 40;
+/// Score minimal d'un nom (1 : le nom commence par la recherche ; 0,7 : elle est au milieu d'un mot ;
+/// -0,2 dans les dossiers des programmes et du système).
+const NOM_SCORE_MIN: f32 = 0.6;
 /// Fichiers récents proposés quand la barre est vide.
 const RECENTS_MAX: usize = 6;
 /// Vecteurs des dernières recherches gardés : effacer une lettre et la retaper ne refait pas le calcul.
@@ -443,6 +446,9 @@ fn noms(texte: &str) -> Vec<Ligne> {
     reclasser(texte, &mut candidats);
     candidats
         .into_iter()
+        // Le mot cherché au milieu d'un autre, dans les dossiers des programmes (« systemmanufacturers.h » pour
+        // « facture ») : jamais ce qu'on cherche. Mieux vaut rien.
+        .filter(|(score, _, _)| *score >= NOM_SCORE_MIN)
         .take(NOMS_MAX)
         .map(|(_, c, dossier)| ligne(&c.to_string_lossy(), String::new(), None, dossier, None))
         .collect()

@@ -44,6 +44,9 @@ enum Commande {
         /// Ne pas reconnaître les visages des photos
         #[arg(long)]
         sans_visages: bool,
+        /// Lire aussi le code des grandes bibliothèques (moteurs de jeu, SDK : plus de 3 000 fichiers de code)
+        #[arg(long)]
+        bibliotheques: bool,
         /// Fils qui préparent les fichiers en parallèle (0 : automatique)
         #[arg(long, default_value_t = 0)]
         fils: usize,
@@ -76,7 +79,7 @@ fn main() -> Result<()> {
     furet_moteur::processus::lier_au_programme();
     let chemin_base = cli.base.clone().unwrap_or_else(|| cli.racine.join("donnees").join("index.sqlite"));
     match cli.commande {
-        Commande::Index { dossier, cpu, tout, sans_ocr, sans_transcription, sans_visages, fils, jetons_image } => {
+        Commande::Index { dossier, cpu, tout, sans_ocr, sans_transcription, sans_visages, bibliotheques, fils, jetons_image } => {
             // Le prototype ne fait qu'indexer : tout le programme passe en priorité basse.
             furet_moteur::processus::programme_en_priorite_basse();
             indexation::indexer(
@@ -93,6 +96,8 @@ fn main() -> Result<()> {
                     jetons_image,
                     arret: Default::default(),
                     suivi: None,
+                    bibliotheques,
+                    noms: true,
                 },
             )
         }

@@ -16,7 +16,7 @@ use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::mpsc::{self, SyncSender};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Instant, UNIX_EPOCH};
 
 /// Un lot envoyé au modèle : au plus 8 morceaux et environ 4 000 jetons.
@@ -36,6 +36,72 @@ const DOSSIERS_SYSTEME: [&str; 7] =
     ["windows", "program files", "program files (x86)", "programdata", "recovery", "perflogs", "$windows.~bt"];
 /// En dessous, seul le nom est enregistré : sons d'interface, vidéos vides. Pas de minimum pour les images :
 /// un GIF ou un schéma PNG peut peser 3 Ko ; les icônes sont écartées par leurs dimensions (fichiers.rs).
+/// Un dossier qui contient plus de fichiers de code que ça (sans compter ses projets à part, voir
+/// `bibliotheques`) est une bibliothèque : moteur de jeu, SDK, dépendances. Son code n'est cherché que par
+/// son nom. Mesuré sur le disque de l'utilisateur (11 novembre 2026) : 372 000 fichiers de code sur 490 000
+/// fichiers lisibles, dont 320 000 dans deux dossiers, soit plus de 20 heures de carte graphique.
+const BIBLIOTHEQUE_FICHIERS: usize = 3000;
+/// Un fichier en erreur et inchangé n'est réessayé qu'après ce délai (un format illisible le reste).
+const REESSAI_ERREUR_S: i64 = 7 * 86_400;
+
+/// L'ordre de lecture : ce que l'utilisateur a fait ou rangé lui-même d'abord, le code à la fin.
+fn priorite(genre: Genre) -> u8 {
+    match genre {
+        Genre::Document | Genre::Pdf | Genre::Tableur => 0,
+        Genre::Photo => 1,
+        Genre::Video | Genre::Audio => 2,
+        Genre::Texte => 3,
+        Genre::Archive => 4,
+        Genre::Code => 5,
+    }
+}
+
+/// Du code, ou un fichier de réglages ou de données que seul un programme lit.
+fn de_bibliotheque(t: &Travail) -> bool {
+    let ext = t.chemin.extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
+    t.genre == Genre::Code || (t.genre == Genre::Texte && !matches!(ext.as_str(), "md" | "markdown" | "txt" | "rst" | "eml"))
+}
+
+/// Les dossiers qui sont des bibliothèques de code, d'après le parcours : (dossier, fichiers de code
+/// directement dedans, contient un `.git`). On compte de bas en haut ; un dossier qui atteint le seuil est
+/// une bibliothèque, et ne pèse plus sur ses parents (un disque qui contient un moteur de jeu n'est pas une
+/// bibliothèque). Un projet à part (avec son `.git`) sous le seuil ne compte pas non plus pour ses parents,
+/// et reste lu même dans une bibliothèque. Rend, pour chaque dossier, s'il est dans une bibliothèque.
+fn bibliotheques(racine: &Path, dossiers: &[(PathBuf, usize, bool)]) -> HashMap<PathBuf, bool> {
+    let mut totaux: HashMap<&Path, usize> = dossiers.iter().map(|(d, n, _)| (d.as_path(), *n)).collect();
+    let mut ordre: Vec<&(PathBuf, usize, bool)> = dossiers.iter().collect();
+    ordre.sort_by_key(|(d, _, _)| std::cmp::Reverse(d.components().count()));
+    // Pour chaque dossier : Some(vrai) bibliothèque, Some(faux) projet à part, None ni l'un ni l'autre.
+    let mut sorte: HashMap<&Path, Option<bool>> = HashMap::new();
+    for (d, _, git) in ordre {
+        let total = totaux[d.as_path()];
+        let s = if d == racine {
+            None
+        } else if total >= BIBLIOTHEQUE_FICHIERS {
+            Some(true)
+        } else if *git {
+            Some(false)
+        } else {
+            None
+        };
+        sorte.insert(d.as_path(), s);
+        if s.is_none()
+            && let Some(parent) = d.parent()
+            && let Some(t) = totaux.get_mut(parent)
+        {
+            *t += total;
+        }
+    }
+    dossiers
+        .iter()
+        .map(|(d, _, _)| {
+            // On remonte jusqu'à la première bibliothèque ou au premier projet à part.
+            let dedans = d.ancestors().find_map(|a| sorte.get(a).copied().flatten()).unwrap_or(false);
+            (d.clone(), dedans)
+        })
+        .collect()
+}
+
 fn taille_min(genre: Genre) -> u64 {
     match genre {
         Genre::Audio => 16 << 10,
@@ -74,6 +140,11 @@ pub struct Options {
     /// Ce qui est fait reste fait : la prochaine fois, elle reprend où elle en était.
     pub arret: Arc<AtomicBool>,
     pub suivi: Option<Suivi>,
+    /// Lire aussi le code des grandes bibliothèques (moteurs de jeu, SDK…) au lieu de ne garder que leurs noms.
+    pub bibliotheques: bool,
+    /// Enregistrer aussi tous les noms de fichiers dans l'index (le prototype cherche les noms là ; l'appli,
+    /// elle, a la liste des disques : inutile de réécrire un million de noms à chaque passage).
+    pub noms: bool,
 }
 
 struct Travail {
@@ -124,20 +195,152 @@ struct Cumul {
     pire_ms: f64,
 }
 
-/// Dossier caché (.git, .venv…), technique (node_modules…) ou de compilation (target de Rust).
-fn dossier_ignore(e: &walkdir::DirEntry) -> bool {
-    if e.depth() == 0 || !e.file_type().is_dir() {
-        return false;
-    }
+/// Dossier caché (.git, .venv…), technique (node_modules…) ou de système. `a_la_racine` : il est
+/// directement à la racine d'un disque.
+fn dossier_ignore(e: &std::fs::DirEntry, a_la_racine: bool) -> bool {
     let nom = e.file_name().to_string_lossy().to_lowercase();
-    let a_la_racine = e.path().parent().is_some_and(|p| p.parent().is_none());
-    // Dossiers marqués « caché » ou « système » par Windows.
-    let attributs = e.metadata().map(|m| std::os::windows::fs::MetadataExt::file_attributes(&m)).unwrap_or(0);
+    // Dossiers marqués « caché » ou « système » par Windows (connu sans relire le disque).
+    #[cfg(windows)]
+    let cache = e.metadata().is_ok_and(|m| std::os::windows::fs::MetadataExt::file_attributes(&m) & 0x6 != 0);
+    #[cfg(not(windows))]
+    let cache = false;
     nom.starts_with('.')
-        || attributs & 0x6 != 0
+        || cache
         || DOSSIERS_IGNORES.contains(&nom.as_str())
         || (a_la_racine && DOSSIERS_SYSTEME.contains(&nom.as_str()))
-        || e.path().join("CACHEDIR.TAG").exists()
+}
+
+/// Ce que le parcours d'un dossier a trouvé.
+#[derive(Default)]
+struct Liste {
+    /// Les fichiers dont le type se lit, avec leur taille et leur date.
+    fichiers: Vec<Travail>,
+    /// Tous les chemins, quel que soit le type (seulement si demandé).
+    noms: Vec<String>,
+    nb_noms: usize,
+    /// Dossiers qui n'ont pas pu être lus (accès refusé, erreur passagère) : on ne sait pas ce qu'ils
+    /// contiennent, donc on n'oublie rien de ce qui s'y trouvait.
+    illisibles: Vec<PathBuf>,
+    /// Chaque dossier parcouru : (chemin, fichiers de code directement dedans, contient un `.git`).
+    dossiers: Vec<(PathBuf, usize, bool)>,
+}
+
+/// Parcourt `dossier` sur plusieurs fils. La taille et la date viennent avec la liste de chaque dossier
+/// (Windows les donne en même temps que les noms) : aucun fichier n'est ouvert. Mesures dans RECHERCHE.md.
+fn lister(dossier: &Path, avec_noms: bool, arret: &AtomicBool) -> Liste {
+    struct Partage {
+        pile: Vec<PathBuf>,
+        actifs: usize,
+    }
+    let partage = Mutex::new(Partage { pile: vec![dossier.to_path_buf()], actifs: 0 });
+    let reveil = Condvar::new();
+    let fils = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).clamp(2, 8);
+    let locales: Vec<Liste> = std::thread::scope(|s| {
+        let poignees: Vec<_> = (0..fils)
+            .map(|_| {
+                s.spawn(|| {
+                    crate::processus::fil_en_priorite_basse();
+                    let mut liste = Liste::default();
+                    loop {
+                        let chemin = {
+                            let mut p = partage.lock().unwrap_or_else(|e| e.into_inner());
+                            loop {
+                                if arret.load(Ordering::Relaxed) || (p.pile.is_empty() && p.actifs == 0) {
+                                    reveil.notify_all();
+                                    return liste;
+                                }
+                                if let Some(d) = p.pile.pop() {
+                                    p.actifs += 1;
+                                    break d;
+                                }
+                                p = reveil.wait(p).unwrap_or_else(|e| e.into_inner());
+                            }
+                        };
+                        let mut sous_dossiers = Vec::new();
+                        match std::fs::read_dir(&chemin) {
+                            Err(_) => liste.illisibles.push(chemin.clone()),
+                            Ok(entrees) => {
+                                let a_la_racine = chemin.parent().is_none();
+                                let (mut fichiers, mut noms, mut nb_noms) = (Vec::new(), Vec::new(), 0);
+                                let (mut code, mut git) = (0, false);
+                                // Un dossier de cache (norme CACHEDIR.TAG) est ignoré en entier, sauf celui demandé.
+                                let mut cache = false;
+                                for e in entrees.flatten() {
+                                    let Ok(sorte) = e.file_type() else { continue };
+                                    if e.file_name() == ".git" {
+                                        git = true;
+                                    }
+                                    if sorte.is_dir() {
+                                        if !dossier_ignore(&e, a_la_racine) {
+                                            sous_dossiers.push(e.path());
+                                        }
+                                    } else if sorte.is_file() {
+                                        if e.file_name() == "CACHEDIR.TAG" && chemin != dossier {
+                                            cache = true;
+                                            break;
+                                        }
+                                        nb_noms += 1;
+                                        let chemin_fichier = e.path();
+                                        if avec_noms {
+                                            noms.push(chemin_fichier.to_string_lossy().into_owned());
+                                        }
+                                        let Some(genre) = Genre::de(&chemin_fichier) else { continue };
+                                        code += usize::from(genre == Genre::Code);
+                                        let Ok(infos) = e.metadata() else { continue };
+                                        let modifie = infos
+                                            .modified()
+                                            .ok()
+                                            .and_then(|m| m.duration_since(UNIX_EPOCH).ok())
+                                            .map_or(0, |d| d.as_secs() as i64);
+                                        fichiers.push(Travail { chemin: chemin_fichier, genre, taille: infos.len(), modifie });
+                                    }
+                                }
+                                if cache {
+                                    sous_dossiers.clear();
+                                } else {
+                                    liste.fichiers.append(&mut fichiers);
+                                    liste.noms.append(&mut noms);
+                                    liste.nb_noms += nb_noms;
+                                    liste.dossiers.push((chemin.clone(), code, git));
+                                }
+                            }
+                        }
+                        let mut p = partage.lock().unwrap_or_else(|e| e.into_inner());
+                        p.pile.append(&mut sous_dossiers);
+                        p.actifs -= 1;
+                        reveil.notify_all();
+                    }
+                })
+            })
+            .collect();
+        poignees.into_iter().filter_map(|p| p.join().ok()).collect()
+    });
+    let mut tout = Liste::default();
+    for mut l in locales {
+        tout.fichiers.append(&mut l.fichiers);
+        tout.noms.append(&mut l.noms);
+        tout.nb_noms += l.nb_noms;
+        tout.illisibles.append(&mut l.illisibles);
+        tout.dossiers.append(&mut l.dossiers);
+    }
+    // Toujours le même ordre, d'un passage à l'autre.
+    tout.fichiers.sort_by(|a, b| a.chemin.cmp(&b.chemin));
+    tout
+}
+
+/// Le parcours d'un dossier, pour les essais : (chemin, type, taille) des fichiers dont le type se lit.
+/// Le dernier élément : le fichier est du code d'une grande bibliothèque (cherché par son nom seulement).
+pub fn parcours_detaille(dossier: &Path) -> Vec<(PathBuf, &'static str, u64, bool)> {
+    let liste = lister(dossier, false, &AtomicBool::new(false));
+    let dans = bibliotheques(dossier, &liste.dossiers);
+    liste
+        .fichiers
+        .into_iter()
+        .map(|t| {
+            let b = de_bibliotheque(&t) && t.chemin.parent().is_some_and(|p| dans.get(p).copied().unwrap_or(false));
+            (t.chemin, t.genre.nom(), t.taille, b)
+        })
+        .collect()
 }
 
 /// Indexe `dossiers` en une seule session (un seul démarrage du modèle). Les fichiers inchangés depuis la
@@ -151,53 +354,109 @@ pub fn indexer(racine: &Path, chemin_base: &Path, dossiers: &[PathBuf], opt: Opt
     };
     suivre(Progres::Parcours);
     let mut base = base::ouvrir(chemin_base)?;
-    let mut tous: Vec<PathBuf> = Vec::new();
-    let mut noms_enregistres = 0;
+    if !opt.noms {
+        base::vider_noms(&base)?;
+    }
+    // L'état de tout l'index, lu une fois : pour sauter les fichiers inchangés et oublier ceux qui ont disparu.
+    let etats = base::etats(&base)?;
+    let mut trouves: Vec<Travail> = Vec::new();
+    let mut noms = 0;
+    let mut de_bibliotheques = 0;
     for dossier in dossiers {
+        // Disque débranché, dossier renommé : on ne touche à rien (sinon tout son index serait oublié).
+        if !dossier.is_dir() {
+            println!("Dossier introuvable pour l'instant, laissé tel quel : {}", dossier.display());
+            continue;
+        }
+        let liste = lister(dossier, opt.noms, &opt.arret);
+        // Arrêté en cours de route : la liste est incomplète, on ne peut rien en conclure.
         if opt.arret.load(Ordering::Relaxed) {
             return Ok(());
         }
-        let du_dossier: Vec<PathBuf> = walkdir::WalkDir::new(dossier)
-            .into_iter()
-            .filter_entry(|e| !dossier_ignore(e))
-            .filter_map(|e| e.ok())
-            .filter(|e| e.file_type().is_file())
-            .map(|e| e.into_path())
-            .collect();
-        // Tous les noms, quel que soit le type : on doit pouvoir retrouver n'importe quel fichier par son nom.
-        let noms: Vec<String> = du_dossier.iter().map(|p| p.to_string_lossy().into_owned()).collect();
         let prefixe = dossier.to_string_lossy();
-        base::enregistrer_noms(&mut base, &prefixe, &noms)?;
-        // Les fichiers supprimés ou déplacés depuis la dernière fois ne doivent plus sortir dans les résultats.
-        let oublies = base::oublier_absents(&mut base, &prefixe, &noms.iter().cloned().collect())?;
-        if oublies > 0 {
-            println!("{oublies} fichier(s) disparu(s) retiré(s) de l'index");
+        if opt.noms {
+            // Tous les noms, quel que soit le type : le prototype retrouve ainsi n'importe quel fichier par son nom.
+            base::enregistrer_noms(&mut base, &prefixe, &liste.noms)?;
         }
-        noms_enregistres += noms.len();
-        tous.extend(du_dossier);
+        // Les fichiers supprimés ou déplacés depuis la dernière fois ne doivent plus sortir dans les résultats
+        // (sauf ceux d'un dossier qui n'a pas pu être lu cette fois-ci).
+        let presents: HashSet<&Path> = liste.fichiers.iter().map(|t| t.chemin.as_path()).collect();
+        let disparus: Vec<i64> = etats
+            .iter()
+            .filter(|(chemin, _)| chemin.starts_with(prefixe.as_ref()))
+            .filter(|(chemin, _)| {
+                let chemin = Path::new(chemin.as_str());
+                !presents.contains(chemin) && !liste.illisibles.iter().any(|d| chemin.starts_with(d))
+            })
+            .map(|(_, etat)| etat.id)
+            .collect();
+        if !disparus.is_empty() {
+            base::oublier(&mut base, &disparus)?;
+            println!("{} fichier(s) disparu(s) retiré(s) de l'index", disparus.len());
+        }
+        noms += liste.nb_noms;
+        // Le code des grandes bibliothèques : par son nom seulement. Ce qu'une version précédente en avait lu
+        // sort de l'index (il noyait les vrais résultats sous du code de moteur de jeu).
+        let dans_bibliotheque = if opt.bibliotheques { HashMap::new() } else { bibliotheques(dossier, &liste.dossiers) };
+        let mut a_oublier = Vec::new();
+        for t in liste.fichiers {
+            let en_bibliotheque =
+                de_bibliotheque(&t) && t.chemin.parent().is_some_and(|p| dans_bibliotheque.get(p).copied().unwrap_or(false));
+            if en_bibliotheque {
+                de_bibliotheques += 1;
+                if let Some(e) = etats.get(t.chemin.to_string_lossy().as_ref()) {
+                    a_oublier.push(e.id);
+                }
+            } else {
+                trouves.push(t);
+            }
+        }
+        if !a_oublier.is_empty() {
+            println!("{} fichier(s) de bibliothèques de code retiré(s) de l'index (toujours trouvables par leur nom)", a_oublier.len());
+            // Par paquets : l'appli peut lire l'index entre deux, et un arrêt garde ce qui est fait.
+            for paquet in a_oublier.chunks(2000) {
+                if opt.arret.load(Ordering::Relaxed) {
+                    return Ok(());
+                }
+                base::oublier(&mut base, paquet)?;
+            }
+        }
     }
-    let noms = noms_enregistres;
-    let trouves: Vec<(PathBuf, Genre)> = tous.into_iter().filter_map(|p| Genre::de(&p).map(|g| (p, g))).collect();
+    if de_bibliotheques > 0 {
+        println!("{de_bibliotheques} fichier(s) de grandes bibliothèques de code : seulement par leur nom");
+    }
     let mut par_genre: BTreeMap<Genre, usize> = BTreeMap::new();
-    trouves.iter().for_each(|(_, g)| *par_genre.entry(*g).or_default() += 1);
+    trouves.iter().for_each(|t| *par_genre.entry(t.genre).or_default() += 1);
     let resume: Vec<String> = par_genre.iter().map(|(g, n)| format!("{n} {}", g.nom())).collect();
-    println!("{noms} noms de fichiers enregistrés (tous types)");
+    println!("{noms} noms de fichiers vus (tous types)");
     println!("{} fichiers à lire par leur contenu : {}", trouves.len(), resume.join(", "));
 
     let mut travaux = Vec::new();
     let mut inchanges = 0;
     let mut minuscules = 0;
-    for (chemin, genre) in trouves {
-        let Ok(meta) = std::fs::metadata(&chemin) else { continue };
-        let modifie = meta.modified().ok().and_then(|m| m.duration_since(UNIX_EPOCH).ok()).map(|d| d.as_secs() as i64).unwrap_or(0);
-        if meta.len() < taille_min(genre) {
+    let mut illisibles = 0;
+    let maintenant = std::time::SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs() as i64);
+    for t in trouves {
+        let etat = etats.get(t.chemin.to_string_lossy().as_ref()).filter(|e| e.taille == t.taille as i64 && e.modifie == t.modifie);
+        if t.taille < taille_min(t.genre) {
             minuscules += 1;
-        } else if !opt.tout && base::a_jour(&base, &chemin.to_string_lossy(), meta.len(), modifie)? {
+        } else if opt.tout {
+            travaux.push(t);
+        } else if etat.is_some_and(|e| e.sans_erreur) {
             inchanges += 1;
+        } else if etat.is_some_and(|e| e.essai.is_some_and(|quand| maintenant - quand < REESSAI_ERREUR_S)) {
+            // Illisible la dernière fois et inchangé depuis : inutile de réessayer à chaque passage.
+            illisibles += 1;
         } else {
-            travaux.push(Travail { chemin, genre, taille: meta.len(), modifie });
+            travaux.push(t);
         }
     }
+    drop(etats);
+    if illisibles > 0 {
+        println!("{illisibles} fichier(s) illisible(s) la dernière fois et inchangé(s) : pas réessayé(s) avant quelques jours");
+    }
+    // Les documents, les photos et les vidéos d'abord ; le code à la fin (l'ordre des chemins est gardé dans chaque groupe).
+    travaux.sort_by_key(|t| priorite(t.genre));
     if minuscules > 0 {
         println!("{minuscules} fichier(s) minuscule(s) (icônes, sons courts…) : seulement par leur nom");
     }
@@ -206,6 +465,18 @@ pub fn indexer(racine: &Path, chemin_base: &Path, dossiers: &[PathBuf], opt: Opt
     }
     let reste_a_transcrire = opt.avec_transcription && !base::a_transcrire(&base)?.is_empty();
     if travaux.is_empty() && !reste_a_transcrire {
+        // Rien à lire : pas besoin du modèle. Les visages et les lieux en retard (option activée après coup)
+        // se font quand même.
+        if opt.avec_visages && visages::modeles_presents(racine) {
+            if let Err(e) = passe_visages(&mut base, racine, &opt) {
+                println!("Visages : {e:#}");
+            }
+        }
+        if !opt.arret.load(Ordering::Relaxed) {
+            if let Err(e) = crate::lieux::passe(&mut base, racine, &opt.arret) {
+                println!("Lieux : {e:#}");
+            }
+        }
         return Ok(());
     }
 
@@ -486,15 +757,18 @@ impl Chaine {
             Err(e) => self.terminer_erreur(p.index, p.prep_ms, format!("{e:#}")),
             Ok(prep) => {
                 let n = prep.morceaux.len();
-                for (i, m) in prep.morceaux.iter().enumerate() {
+                let mut restants = 0;
+                // Les morceaux sans entrée (texte seul, dans les très gros fichiers) n'attendent pas le modèle.
+                for (i, m) in prep.morceaux.iter().enumerate().filter(|(_, m)| !m.entree.is_null()) {
                     self.attente.push_back((p.index, i));
                     self.poids_attente += m.poids;
+                    restants += 1;
                 }
                 self.en_cours.insert(
                     p.index,
-                    EnCours { prep, vecteurs: vec![None; n], restants: n, prep_ms: p.prep_ms, modele_ms: 0.0 },
+                    EnCours { prep, vecteurs: vec![None; n], restants, prep_ms: p.prep_ms, modele_ms: 0.0 },
                 );
-                if n == 0 {
+                if restants == 0 {
                     self.terminer(p.index)?;
                 }
                 Ok(())
@@ -580,7 +854,7 @@ impl Chaine {
                 nature: m.nature,
                 debut: m.debut,
                 fin: m.fin,
-                vecteur: v.expect("vecteur reçu"),
+                vecteur: v,
                 texte: m.texte.clone(),
             })
             .collect();

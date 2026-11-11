@@ -132,7 +132,9 @@ impl ArbreNoms {
         let mut i = self.elements[i as usize].parent;
         while i != RACINE {
             let e = &self.elements[i as usize];
-            if DOSSIERS_DISCRETS.contains(&self.cle(e)) || self.cle(e).starts_with('.') {
+            // Le vrai nom, pas la clé normalisée : « Program Files (x86) » y perd ses parenthèses, « .git » son point.
+            let nom = self.nom(e).to_lowercase();
+            if DOSSIERS_DISCRETS.contains(&nom.as_str()) || nom.starts_with('.') {
                 return true;
             }
             i = e.parent;

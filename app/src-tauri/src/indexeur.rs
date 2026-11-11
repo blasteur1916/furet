@@ -182,6 +182,8 @@ fn gardien(app: &AppHandle) {
                 jetons_image: None,
                 arret: arret.clone(),
                 suivi: Some(suivi),
+                bibliotheques: r.bibliotheques,
+                noms: false,
             },
         );
         fini.store(true, Ordering::Relaxed);

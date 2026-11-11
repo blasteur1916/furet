@@ -99,8 +99,13 @@ pub fn score_avec(recherche: &str, nom: &str, fautes: bool) -> f32 {
     if nom.starts_with(recherche) {
         return 1.0;
     }
-    if nom.contains(recherche) {
+    // Au début d'un mot du nom (« ma facture » pour « facture ») : presque aussi bien. Au milieu d'un mot
+    // (« manufacturers » pour « facture ») : bien moins, sinon ces noms passaient devant les vrais.
+    if nom.contains(&format!(" {recherche}")) {
         return 0.95;
+    }
+    if nom.contains(recherche) {
+        return 0.7;
     }
     // Sinon, chaque mot cherché doit se retrouver dans un mot du nom.
     let mots_nom: Vec<&str> = nom.split(' ').collect();
@@ -124,7 +129,7 @@ fn score_mot(m: &str, t: &str, fautes: bool) -> f32 {
         return 0.95;
     }
     if m.chars().count() >= 3 && t.contains(m) {
-        return 0.85;
+        return 0.7;
     }
     if !fautes {
         return 0.0;
@@ -160,6 +165,14 @@ fn distance(a: &str, b: &str) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn debut_de_mot_avant_milieu() {
+        let vrai = score_avec("facture", &normaliser("Ma facture EDF.pdf"), false);
+        let faux = score_avec("facture", &normaliser("SystemManufacturers.h"), false);
+        assert!(vrai > faux + 0.2, "{vrai} {faux}");
+        assert_eq!(score_avec("facture", &normaliser("facture.pdf"), false), 1.0);
+    }
 
     #[test]
     fn normalise() {

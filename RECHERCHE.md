@@ -286,6 +286,13 @@ Prototype Rust en ligne de commande : `proto/` (`furet-proto index | cherche | s
 - Les villes sont mises en forme sur le PC (`lieux::preparer`, comme le script Python d'origine) à partir de GeoNames et du CLDR : ces fichiers changent chaque jour, ils ne sont donc pas vérifiés par empreinte.
 - Installateur NSIS de 11 Mo, installation pour l'utilisateur seul (pas de droits administrateur). Mises à jour signées (minisign, tauri-plugin-updater).
 
+### Optimisation de l'indexation (11 novembre)
+
+- Le modèle plafonne à ~180 passages par seconde sur la RTX 4070 Laptop, quels que soient la taille des lots (8 à 64), le nombre de lots en vol, Flash Attention ou `-ub 2048` (tous plus lents ou égaux) : les réglages actuels restent. La chaîne complète tient ce plafond (2 000 fichiers, 8 000 passages en 44 s). Le gain vient donc d'avoir moins de passages.
+- Disque D: de l'utilisateur : 490 000 fichiers lisibles, dont 372 000 fichiers de code — 360 000 dans des bibliothèques (deux moteurs de jeu à eux seuls : 300 000). Avec la règle des bibliothèques, il reste 122 000 fichiers à lire. Parcours parallèle : 6 à 14 s pour 830 000 noms.
+- Dans l'index existant : 1,6 % des fichiers de texte portaient 51 % des passages ; les archives (paquets d'installation surtout) 682 000 morceaux sur 986 000. Après nettoyage : 986 000 → 58 000 vecteurs, index de 2,4 Go → 0,8 Go, index rapide 80 Mo, recherche complète 8 à 31 ms (au lieu de 19 à 361 ms).
+- 1 664 sons en erreur : des .wav dont le codec n'existe pas dans ffmpeg (« unknown codec ») ; ils ne sont plus réessayés à chaque passage, seulement après 7 jours ou s'ils changent.
+
 ---
 
 ## Sources

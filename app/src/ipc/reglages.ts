@@ -6,6 +6,8 @@ export interface Reglages {
   ocr: boolean;
   transcription: boolean;
   visages: boolean;
+  /** Lire aussi le code des grandes bibliothèques (moteurs de jeu, SDK…). */
+  bibliotheques: boolean;
   pause_batterie: boolean;
   pause_jeu: boolean;
   /** Lancer Furet avec Windows. */

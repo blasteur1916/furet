@@ -22,6 +22,9 @@ pub fn ouvrir(chemin: &Path) -> Result<Connection> {
     let base = Connection::open(chemin)?;
     // L'appli et l'indexation écrivent parfois en même temps : on attend son tour plutôt que d'échouer.
     base.busy_timeout(std::time::Duration::from_secs(5))?;
+    // Avec le journal WAL, « NORMAL » ne peut pas abîmer la base ; une coupure de courant peut seulement faire
+    // perdre les tout derniers fichiers indexés, qui seront relus. Chaque fichier enregistré n'attend plus le disque.
+    base.execute_batch("PRAGMA synchronous = NORMAL;")?;
     // Index d'une version précédente (vecteurs de 768 dimensions) : on repart de zéro, les noms restent.
     let ancien: Option<String> =
         base.query_row("SELECT sql FROM sqlite_master WHERE name = 'vecteurs'", [], |r| r.get(0)).optional()?;
@@ -85,6 +88,7 @@ pub fn ouvrir(chemin: &Path) -> Result<Connection> {
         ("fichiers", "lon", "REAL"),
         ("fichiers", "prise", "INTEGER"),
         ("fichiers", "lieu_id", "INTEGER"),
+        ("fichiers", "essai", "INTEGER"),
     ] {
         let existe: bool = base.query_row(
             &format!("SELECT COUNT(*) > 0 FROM pragma_table_info('{table}') WHERE name = '{colonne}'"),
@@ -151,6 +155,40 @@ pub fn ouvrir(chemin: &Path) -> Result<Connection> {
     Ok(base)
 }
 
+/// L'état d'un fichier de l'index.
+pub struct Etat {
+    pub id: i64,
+    pub taille: i64,
+    pub modifie: i64,
+    pub sans_erreur: bool,
+    /// Quand il a été lu pour la dernière fois (secondes depuis 1970 ; rien pour un index plus ancien).
+    pub essai: Option<i64>,
+}
+
+/// L'état de tous les fichiers de l'index, en une seule lecture, par chemin.
+pub fn etats(base: &Connection) -> Result<HashMap<String, Etat>> {
+    let mut req = base.prepare("SELECT chemin, id, taille, modifie, erreur IS NULL, essai FROM fichiers")?;
+    let etats = req
+        .query_map([], |r| {
+            Ok((r.get(0)?, Etat { id: r.get(1)?, taille: r.get(2)?, modifie: r.get(3)?, sans_erreur: r.get(4)?, essai: r.get(5)? }))
+        })?
+        .collect::<rusqlite::Result<_>>()?;
+    Ok(etats)
+}
+
+/// Retire ces fichiers de l'index (supprimés ou déplacés sur le disque).
+pub fn oublier(base: &mut Connection, ids: &[i64]) -> Result<()> {
+    supprimer_fichiers(base, ids)
+}
+
+/// Vide la table des noms (l'appli cherche les noms dans la liste des disques, plus ici).
+pub fn vider_noms(base: &Connection) -> Result<()> {
+    if base.query_row("SELECT EXISTS(SELECT 1 FROM noms)", [], |r| r.get::<_, bool>(0))? {
+        base.execute("DELETE FROM noms", [])?;
+    }
+    Ok(())
+}
+
 /// Vrai si le fichier est déjà dans l'index, sans erreur et inchangé.
 pub fn a_jour(base: &Connection, chemin: &str, taille: u64, modifie: i64) -> Result<bool> {
     let ligne: Option<(i64, i64, Option<String>)> = base
@@ -180,7 +218,8 @@ pub struct MorceauIndexe {
     pub nature: &'static str,
     pub debut: f64,
     pub fin: Option<f64>,
-    pub vecteur: Vec<f32>,
+    /// Rien : morceau trouvable seulement par ses mots exacts (très gros fichiers de texte).
+    pub vecteur: Option<Vec<f32>>,
     /// Le passage de texte (documents, OCR, transcriptions) : pour les mots exacts et les extraits.
     pub texte: Option<String>,
     /// Dans une archive : le fichier dont vient le morceau.
@@ -197,8 +236,8 @@ pub fn enregistrer(base: &mut Connection, f: &Fiche, morceaux: &[MorceauIndexe],
     }
     t.execute(
         "INSERT INTO fichiers (chemin, genre, taille, modifie, prep_ms, ocr_ms, transcription_ms, modele_ms, nb_morceaux,
-                               pages_sans_texte, appareil, erreur)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+                               pages_sans_texte, appareil, erreur, essai)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, CAST(strftime('%s', 'now') AS INTEGER))",
         params![f.chemin, f.genre, f.taille as i64, f.modifie, f.prep_ms, f.ocr_ms, f.transcription_ms, f.modele_ms,
                 morceaux.len() as i64, f.pages_sans_texte as i64, f.appareil, f.erreur],
     )?;
@@ -209,9 +248,12 @@ pub fn enregistrer(base: &mut Connection, f: &Fiche, morceaux: &[MorceauIndexe],
         let mut ajout_vecteur = t.prepare("INSERT INTO vecteurs (rowid, embedding) VALUES (?1, ?2)")?;
         let mut ajout_texte = t.prepare("INSERT INTO textes (rowid, texte) VALUES (?1, ?2)")?;
         for m in morceaux {
-            ajout_morceau.execute(params![fichier_id, m.nature, m.debut, m.fin, banque.biais(&m.vecteur), m.partie])?;
+            let biais = m.vecteur.as_ref().map(|v| banque.biais(v));
+            ajout_morceau.execute(params![fichier_id, m.nature, m.debut, m.fin, biais, m.partie])?;
             let id = t.last_insert_rowid();
-            ajout_vecteur.execute(params![id, octets(&m.vecteur)])?;
+            if let Some(v) = &m.vecteur {
+                ajout_vecteur.execute(params![id, octets(v)])?;
+            }
             if let Some(texte) = &m.texte {
                 ajout_texte.execute(params![id, texte])?;
             }
@@ -298,6 +340,8 @@ const MOTS_VIDES: [&str; 46] = [
     "avec", "dans", "que", "qui", "quoi", "ce", "cet", "cette", "ces", "son", "sa", "ses", "mon", "ma", "mes", "est",
     "sont", "pas", "plus", "the", "of", "and", "to", "in", "for", "on", "with", "is", "it",
 ];
+/// Au-delà de ce nombre de passages, des mots sont trop courants pour départager quoi que ce soit.
+const MOTS_EXACTS_MAX: i64 = 15_000;
 /// Fusion des classements (« reciprocal rank fusion ») : 60 est la valeur usuelle.
 const FUSION_K: f32 = 60.0;
 
@@ -381,9 +425,19 @@ pub fn chercher(base: &Connection, q: &Requete, index: Option<&IndexRapide>) -> 
     par_sens.retain(|r| vus.insert(r.chemin.clone()));
     let (par_sens, sous_le_seuil): (Vec<Resultat>, Vec<Resultat>) = par_sens.into_iter().partition(|r| r.score >= q.seuil);
 
-    // 2. Par les mots exacts : chaque mot doit y être (au début d'un mot), avec l'extrait autour.
+    // 2. Par les mots exacts : chaque mot doit y être (au début d'un mot), avec l'extrait autour. Des mots
+    // présents partout (« function return » : 99 000 passages) coûteraient 250 ms à classer pour rien : la
+    // recherche par le sens s'en charge. Compter, lui, est rapide.
     let mut par_mots: Vec<Resultat> = Vec::new();
-    if let Some(mots) = requete_mots(q.texte) {
+    let mots_utiles = requete_mots(q.texte).filter(|mots| {
+        base.query_row(
+            "SELECT COUNT(*) FROM (SELECT 1 FROM textes WHERE textes MATCH ?1 LIMIT ?2)",
+            params![mots, MOTS_EXACTS_MAX + 1],
+            |r| r.get::<_, i64>(0),
+        )
+        .is_ok_and(|n| n <= MOTS_EXACTS_MAX)
+    });
+    if let Some(mots) = mots_utiles {
         let trouves: Vec<(i64, String)> = {
             let mut req = base.prepare(
                 "SELECT rowid, snippet(textes, 0, char(1), char(2), '…', 14) FROM textes
@@ -594,9 +648,10 @@ pub fn oublier_dossier(base: &mut Connection, dossier: &str) -> Result<()> {
 
 fn supprimer_fichiers(base: &mut Connection, ids: &[i64]) -> Result<()> {
     let t = base.transaction()?;
-    for id in ids {
-        t.execute("DELETE FROM vecteurs WHERE rowid IN (SELECT id FROM morceaux WHERE fichier_id = ?1)", [id])?;
-        t.execute("DELETE FROM fichiers WHERE id = ?1", [id])?;
+    for paquet in ids.chunks(500) {
+        let liste = paquet.iter().map(i64::to_string).collect::<Vec<_>>().join(",");
+        t.execute(&format!("DELETE FROM vecteurs WHERE rowid IN (SELECT id FROM morceaux WHERE fichier_id IN ({liste}))"), [])?;
+        t.execute(&format!("DELETE FROM fichiers WHERE id IN ({liste})"), [])?;
     }
     t.commit()?;
     Ok(())

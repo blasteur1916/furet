@@ -30,10 +30,20 @@ const ECHANTILLONS_PAR_SECONDE: usize = 16_000;
 /// Jetons d'une image (--image-max-tokens) et d'une seconde de son (fiche de Google).
 pub const JETONS_IMAGE: usize = 280;
 const JETONS_SON_PAR_SECONDE: usize = 25;
+/// Dans un fichier de texte, les premiers passages reçoivent tous un vecteur (≈ 40 000 caractères)…
+const PASSAGES_PLEINS: usize = 40;
+/// … puis un sur quatre…
+const PASSAGES_PAS: usize = 4;
+/// … et jamais plus que ça. Les autres restent trouvables par leurs mots exacts.
+/// Mesuré sur l'index de l'utilisateur (11 novembre 2026) : 1,6 % des fichiers de texte portaient 51 % des
+/// 236 000 passages, et le modèle fait les trois quarts du temps d'indexation.
+const PASSAGES_MAX: usize = 200;
 /// Dans une archive : au plus ce nombre de fichiers lus, ce total, et pas de fichier plus gros que ça.
 const ARCHIVE_FICHIERS_MAX: usize = 300;
 const ARCHIVE_OCTETS_MAX: u64 = 300 << 20;
 const ARCHIVE_FICHIER_OCTETS_MAX: u64 = 50 << 20;
+/// Passages de texte d'une archive qui reçoivent un vecteur, tous fichiers confondus (les suivants : mots exacts).
+const ARCHIVE_PASSAGES_MAX: usize = 300;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum Genre {
@@ -114,6 +124,7 @@ pub struct Morceau {
     pub debut: f64,
     /// Seconde de fin (son, plan).
     pub fin: Option<f64>,
+    /// Ce qu'on envoie au modèle. Nul : pas de vecteur pour ce morceau, seulement son texte (mots exacts).
     pub entree: Value,
     /// Estimation du nombre de jetons, pour remplir les lots sans dépasser le contexte.
     pub poids: usize,
@@ -168,6 +179,16 @@ impl Lecteurs {
     }
 
     pub fn preparer(&self, chemin: &Path, genre: Genre) -> Result<Preparation> {
+        let mut prep = self.lire(chemin, genre)?;
+        // Texte, code, tableurs : les fichiers géants sont presque toujours faits par des machines (code
+        // empaqueté, journaux, exports). Les PDF et les documents, écrits pour être lus, restent entiers.
+        if matches!(genre, Genre::Texte | Genre::Code | Genre::Tableur) {
+            alleger(&mut prep.morceaux);
+        }
+        Ok(prep)
+    }
+
+    fn lire(&self, chemin: &Path, genre: Genre) -> Result<Preparation> {
         let titre = chemin.file_name().map(|s| s.to_string_lossy().to_string()).unwrap_or_default();
         let ext = chemin.extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
         match genre {
@@ -189,9 +210,14 @@ impl Lecteurs {
     /// (photos, PDF, documents, textes, code ; pas les sons ni les vidéos, trop longs, ni les archives dedans).
     fn archive(&self, chemin: &Path) -> Result<Preparation> {
         let mut zip = zip::ZipArchive::new(std::fs::File::open(chemin)?).context("archive illisible")?;
-        let dossier = DossierTemporaire::nouveau()?;
         let mut prep = Preparation::default();
+        // Un logiciel (installateur, paquet) : trouvable par son nom, pas par ses traductions ni ses images.
+        if archive_de_logiciel(zip.file_names().filter_map(|n| n.ok())) {
+            return Ok(prep);
+        }
+        let dossier = DossierTemporaire::nouveau()?;
         let (mut lus, mut octets) = (0, 0u64);
+        let mut passages = 0;
         for i in 0..zip.len() {
             if lus >= ARCHIVE_FICHIERS_MAX || octets >= ARCHIVE_OCTETS_MAX {
                 break;
@@ -199,10 +225,10 @@ impl Lecteurs {
             let Ok(mut entree) = zip.by_index(i) else { continue };
             // `enclosed_name` refuse les chemins qui sortiraient du dossier (« ../../ »).
             let Some(interne) = entree.enclosed_name() else { continue };
-            let genre = match Genre::de(&interne) {
-                Some(g @ (Genre::Photo | Genre::Pdf | Genre::Document | Genre::Tableur | Genre::Texte | Genre::Code)) => g,
-                _ => continue,
-            };
+            if !de_personne_dans_archive(&interne) {
+                continue;
+            }
+            let Some(genre) = Genre::de(&interne) else { continue };
             if entree.is_dir() || entree.size() > ARCHIVE_FICHIER_OCTETS_MAX {
                 continue;
             }
@@ -219,7 +245,16 @@ impl Lecteurs {
                 let partie = interne.to_string_lossy().replace('\\', "/");
                 prep.pages_sans_texte += p.pages_sans_texte;
                 prep.ocr_ms += p.ocr_ms;
-                prep.morceaux.extend(p.morceaux.into_iter().map(|m| Morceau { partie: Some(partie.clone()), ..m }));
+                for mut m in p.morceaux {
+                    if m.texte.is_some() && !m.entree.is_null() {
+                        passages += 1;
+                        if passages > ARCHIVE_PASSAGES_MAX {
+                            m.entree = Value::Null;
+                            m.poids = 0;
+                        }
+                    }
+                    prep.morceaux.push(Morceau { partie: Some(partie.clone()), ..m });
+                }
             }
             let _ = std::fs::remove_file(&copie);
         }
@@ -280,6 +315,55 @@ impl Lecteurs {
         }
         Ok(prep)
     }
+}
+
+/// Retire l'entrée du modèle (`entree` nulle) des passages en trop d'un très gros fichier : ils gardent
+/// leur texte, donc restent trouvables par leurs mots exacts, mais ne coûtent plus rien au modèle.
+fn alleger(morceaux: &mut [Morceau]) {
+    let (mut rang, mut gardes) = (0, 0);
+    for m in morceaux.iter_mut().filter(|m| m.texte.is_some()) {
+        rang += 1;
+        let garder = rang <= PASSAGES_PLEINS || ((rang - PASSAGES_PLEINS) % PASSAGES_PAS == 0 && gardes < PASSAGES_MAX);
+        if garder {
+            gardes += 1;
+        } else {
+            m.entree = Value::Null;
+            m.poids = 0;
+        }
+    }
+}
+
+/// Dans une archive, ce qu'une personne y range : photos, PDF, documents, tableurs, notes. Pas le code, les
+/// réglages ni les pages web : une archive qui en contient est presque toujours un logiciel (installateur,
+/// paquet), dont les traductions et les licences noyaient les vrais résultats.
+pub fn de_personne_dans_archive(interne: &Path) -> bool {
+    let ext = interne.extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
+    match Genre::de(interne) {
+        Some(Genre::Photo | Genre::Pdf | Genre::Document | Genre::Tableur) => true,
+        Some(Genre::Texte) => matches!(ext.as_str(), "txt" | "md" | "markdown" | "rst" | "eml"),
+        _ => false,
+    }
+}
+
+/// Une archive qui contient des programmes, ou surtout du code et des réglages : un logiciel, pas des
+/// affaires rangées par quelqu'un.
+pub fn archive_de_logiciel<S: AsRef<str>>(noms: impl Iterator<Item = S>) -> bool {
+    let (mut fichiers, mut techniques) = (0, 0);
+    for nom in noms {
+        let nom = nom.as_ref();
+        if nom.ends_with('/') {
+            continue;
+        }
+        fichiers += 1;
+        let ext = Path::new(nom).extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
+        if matches!(ext.as_str(), "exe" | "dll" | "msi" | "sys" | "so" | "dylib" | "jar" | "class" | "pyd" | "node" | "apk") {
+            return true;
+        }
+        let technique = matches!(Genre::de(Path::new(nom)), Some(Genre::Code))
+            || matches!(ext.as_str(), "json" | "xml" | "html" | "htm" | "ini" | "cfg" | "yaml" | "yml" | "toml" | "plist" | "dat" | "bin" | "pak");
+        techniques += usize::from(technique);
+    }
+    fichiers > 0 && techniques * 5 > fichiers
 }
 
 /// Un dossier temporaire à soi, effacé quand on n'en a plus besoin (même après une erreur).
