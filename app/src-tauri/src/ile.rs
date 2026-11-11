@@ -1,4 +1,4 @@
-//! La fenêtre de l'île (reprise de Quiera) : transparente, toujours au-dessus, en haut de l'écran
+//! La fenêtre de l'île : transparente, toujours au-dessus, en haut de l'écran
 //! principal. Elle ne prend jamais le clavier d'elle-même. Windows limite son dessin et ses clics à la
 //! région que l'interface envoie (la forme de l'île) : ailleurs, les clics vont aux fenêtres du dessous.
 //! Fermée, la région est vide : l'île est invisible et entièrement traversée par les clics.

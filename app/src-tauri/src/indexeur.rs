@@ -60,9 +60,9 @@ fn partage() -> std::sync::MutexGuard<'static, Partage> {
 }
 
 pub fn demarrer(app: &AppHandle) {
-    // Mode de test (index d'essai) : rien n'est indexé tant qu'on ne le demande pas.
+    // Mode de test (index d'essai) : rien n'est indexé, et la barre n'affiche aucun état d'indexation.
     if std::env::var_os("FURET_TEST").is_some() {
-        PAUSE_MANUELLE.store(true, Ordering::Relaxed);
+        return;
     }
     let app = app.clone();
     let lance = std::thread::Builder::new().name("furet-indexation".into()).spawn(move || gardien(&app));

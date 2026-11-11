@@ -1,4 +1,4 @@
-/* Repris de Quiera (src/island/island.css). */
+/* La scène de l'île : la fenêtre entière, transparente. */
 .ile-scene {
   position: fixed;
   inset: 0;

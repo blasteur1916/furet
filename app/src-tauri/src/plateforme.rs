@@ -33,8 +33,8 @@ pub fn sur_batterie() -> bool {
     }
 }
 
-/// Un jeu, une vidéo ou une présentation occupe tout l'écran de l'île (repris de Quiera,
-/// platform/windows/fullscreen.rs). Ailleurs que sous Windows : pas encore détecté.
+/// Un jeu, une vidéo ou une présentation occupe tout l'écran de l'île. Ailleurs que sous Windows : pas
+/// encore détecté.
 pub fn jeu_en_cours() -> bool {
     #[cfg(windows)]
     {

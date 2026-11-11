@@ -1,13 +1,12 @@
 # Furet
 
-Appli Windows de recherche de fichiers **par leur contenu** (photos, PDF, Office, audio, vidéo, code) et **par leur nom**, dans une seule barre, entièrement en local. Elle remplace Quiera (une Dynamic Island pour Windows, arrêtée le 8 novembre 2026), dont le dépôt est dans `D:\nom a trouver`.
+Appli Windows de recherche de fichiers **par leur contenu** (photos, PDF, Office, audio, vidéo, code) et **par leur nom**, dans une seule barre, entièrement en local. C'est un logiciel à part entière : ne jamais citer d'autre projet dans le code ou la doc.
 
 Tout le contexte est dans [RECHERCHE.md](RECHERCHE.md) :
 - le modèle (EmbeddingGemma 2 via llama.cpp) ;
 - la techno pour chaque type de fichier ;
 - la concurrence (surtout DigUp) ;
-- le design, qui reprend la barre de recherche de Quiera ;
-- le code de Quiera à réutiliser ;
+- le design de la barre ;
 - la première étape.
 
 ## Façon de travailler
@@ -19,12 +18,12 @@ Tout le contexte est dans [RECHERCHE.md](RECHERCHE.md) :
 
 ## Où on en est
 
-Le **prototype Rust en ligne de commande** est fait : `proto/` (`furet-proto index <dossier>`, `cherche "…"`, `stats`). Il indexe tous les types de fichiers (photos, PDF, audio, vidéo, Office, tableurs, texte, code) avec EmbeddingGemma 2 (llama-server, Vulkan), l'OCR de Windows et la transcription Parakeet v3 (sherpa-onnx), en deux passes : d'abord tout est cherchable, puis la parole est transcrite. Il cherche aussi **par le nom** dans tous les fichiers (tous types). Résultats et réglages : partie 10 de [RECHERCHE.md](RECHERCHE.md).
+Le **prototype Rust en ligne de commande** est fait : `proto/` (`furet-proto index <dossier>`, `cherche "…"`, `stats`). Il indexe tous les types de fichiers (photos, PDF, audio, vidéo, Office, tableurs, texte, code) avec EmbeddingGemma 2 (llama-server, Vulkan), l'OCR de Windows et la transcription Parakeet v3 (sherpa-onnx), en deux passes : d'abord tout est cherchable, puis la parole est transcrite. Il cherche aussi **par le nom** dans tous les fichiers (tous types). Résultats et réglages : partie 9 de [RECHERCHE.md](RECHERCHE.md).
 
 L'utilisateur l'a testé sur un vrai dossier (328 fichiers) : ça marche. Seuil réglé (correction des « aimants », 256 dimensions). Le prototype est terminé.
 
-**Le vrai logiciel** est commencé (licence **GPL-3.0**, comme Quiera, dont l'utilisateur est l'auteur). Plan en 9 étapes validé, chacune à faire valider. Nom définitif : **Furet** ; version **1.0.0** (11 novembre 2026) :
-1. squelette : l'île et la barre de Quiera, Alt+Espace, recherche dans l'index existant — fait ;
+**Le vrai logiciel** est commencé (licence **GPL-3.0**). Plan en 9 étapes validé, chacune à faire valider. Nom définitif : **Furet** ; version **1.0.0** (11 novembre 2026) :
+1. squelette : l'île et la barre, Alt+Espace, recherche dans l'index existant — fait ;
 2. résultats riches (miniatures Windows, ligne « pourquoi ») — fait ;
 3. indexation en arrière-plan dans l'appli (dossiers et options dans les réglages, roue à droite de la barre ; pause sur batterie, jeu, plein écran ou à la demande, qui arrête aussi le llama-server d'indexation) — fait ;
 4. index rapide HNSW (`moteur/src/vecteurs.rs`, usearch, tenu à jour par un journal que remplissent des déclencheurs SQLite) + mots exacts (FTS5, table `textes`) + recherche mixte avec extraits — fait ;

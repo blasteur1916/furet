@@ -1,4 +1,3 @@
-// Repris de Quiera (src/island/shell.ts).
 /**
  * The island's silhouette as SVG paths (after Bloom, GPL-3.0).
  *

@@ -152,7 +152,7 @@ export function Apercu({ ligne, mots }: { ligne: Ligne; mots: string }) {
           <span className="apercu-nom">{ligne.nom}</span>
           <span className="apercu-infos">
             {/* La position, sauf « modifié le… » ou « pris à… » : les infos le disent déjà. */}
-            {[c?.type === "pdf" ? `page ${page || c.page} sur ${c.pages}` : /^(modifié|pris)/.test(ligne.position) ? "" : ligne.position, a?.infos]
+            {[c?.type === "pdf" ? `page ${page || c.page} sur ${c.pages}` : /^(modifié|pris|\d)/.test(ligne.position) ? "" : ligne.position, a?.infos]
               .filter(Boolean)
               .join(" · ")}
           </span>

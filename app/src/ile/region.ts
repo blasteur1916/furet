@@ -1,4 +1,3 @@
-// Repris de Quiera (src/island/region.ts).
 /**
  * Keeps the island window's region (where it draws and takes clicks) on the
  * shell. The region follows the shell's *target* shape, not its animated

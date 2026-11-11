@@ -1,5 +1,5 @@
 //! Les miniatures de Windows, les mêmes que l'Explorateur : l'aperçu des photos, PDF, vidéos et documents,
-//! l'icône du type pour le reste (repris de Quiera, platform/windows/thumbnail.rs et shelf.rs).
+//! l'icône du type pour le reste.
 //! Une à la fois, sur un seul fil : certains générateurs d'aperçus échouent s'ils sont appelés de
 //! plusieurs fils en même temps. Servies à l'interface par l'adresse `http://furet-mini.localhost/<clé>`.
 

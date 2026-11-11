@@ -1,4 +1,3 @@
-// Repris de Quiera (src/island/springs.ts).
 /**
  * Every spring and duration of the shell, in one place. Values start from
  * Bloom's (GPL-3.0) and follow one rule shared with Boring Notch and

@@ -1,4 +1,4 @@
-// Repris de Quiera (src/island/IslandShell.tsx), sans le survol ni le clic de l'île compacte.
+// La coque de l'île : sa forme noire, animée par des ressorts vers la forme voulue.
 import { useEffect, type ReactNode } from "react";
 import { animate, motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import type { ShellTarget } from "./geometrie";

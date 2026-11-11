@@ -589,7 +589,8 @@ fn contenu(texte: &str) -> anyhow::Result<Vec<Ligne>> {
         return Ok(trouves
             .into_iter()
             .map(|r| {
-                let position = format!("modifié le {} · {}", date_lisible(r.modifie), taille_lisible(r.taille));
+                // La date de prise de vue d'une photo qui la connaît, de modification sinon : sans étiquette.
+                let position = format!("{} · {}", date_lisible(r.modifie), taille_lisible(r.taille));
                 ligne(&r.chemin, position, None, false, None)
             })
             .collect());
@@ -618,7 +619,14 @@ fn contenu(texte: &str) -> anyhow::Result<Vec<Ligne>> {
                     let r = base::Requete { vecteur: &vecteur, texte: &lieu.reste, n: CONTENU_MAX, filtre: &ici, seuil: 0.0 };
                     base::chercher(b, &r, rapide.as_ref())?.0
                 };
-                photos.into_iter().map(|p| (p.chemin, lieu.etiquette.clone())).collect()
+                // Le lieu de chaque photo (« Lagos, Portugal »), plus précis que le nom tapé (« Portugal »).
+                photos
+                    .into_iter()
+                    .map(|p| {
+                        let ici = lieux::lieu_de(b, &p.chemin).ok().flatten().unwrap_or_else(|| lieu.etiquette.clone());
+                        (p.chemin, ici)
+                    })
+                    .collect()
             }
             None => Vec::new(),
         };

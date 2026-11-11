@@ -1,5 +1,5 @@
 /**
- * La forme vers laquelle l'île tend (adapté de Quiera, src/island/geometry.ts) : cachée au-dessus du
+ * La forme vers laquelle l'île tend : cachée au-dessus du
  * bord de l'écran, ou ouverte à la taille de la barre et de ses résultats.
  */
 import { FLARE, silhouetteWidth } from "./shell";
@@ -17,7 +17,7 @@ export interface ShellTarget {
   y: number;
 }
 
-/** La largeur de la barre, comme le lanceur de Quiera. */
+/** La largeur de la barre. */
 export const LARGEUR_BARRE = 640;
 const RAYON = 28;
 

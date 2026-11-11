@@ -29,7 +29,7 @@ Le meilleur choix aujourd'hui pour une appli locale qui couvre **tous** les type
 - **Scores** (fiche officielle) : MTEB multilingue 61,4 · code 78,7 · images MIEB lite 65,7 · son MSEB 69,5 · vidéo MMEB v2 50,7.
 - **Tourne dans llama.cpp** (prise en charge ajoutée le 6 octobre 2026), sur la carte graphique via **Vulkan** (NVIDIA, AMD, Intel) ou sur le processeur.
 
-**Vérifié le 8 novembre 2026** : l'image et le son passent par un fichier « projecteur » séparé (`mmproj`). Le ticket llama.cpp #30082 qui disait ce chemin cassé a été fermé par son auteur (mauvaise forme de requête). Image, son et vidéo marchent avec `llama-server` sur `/v1/embeddings`, au format `{"input": [{"content": [{"type": "image_url" | "input_audio", …}]}]}`. Voir la partie 10.
+**Vérifié le 8 novembre 2026** : l'image et le son passent par un fichier « projecteur » séparé (`mmproj`). Le ticket llama.cpp #30082 qui disait ce chemin cassé a été fermé par son auteur (mauvaise forme de requête). Image, son et vidéo marchent avec `llama-server` sur `/v1/embeddings`, au format `{"input": [{"content": [{"type": "image_url" | "input_audio", …}]}]}`. Voir la partie 9.
 
 ### Les alternatives
 
@@ -47,7 +47,7 @@ Recommandation : **EmbeddingGemma 2 partout**, et garder Qwen3-VL en option si l
 
 | Type | Lire le fichier | Comprendre le contenu | Remarques |
 |---|---|---|---|
-| **Noms de tous les fichiers** | Table **MFT** du NTFS et **journal USN** (crate Rust `ntfs-reader`) | — | Tous les noms en quelques secondes, mises à jour en direct. Demande des droits administrateur : un petit service installé une fois, comme Everything. Sans droits : parcours classique des dossiers (ce que fait le lanceur de Quiera). |
+| **Noms de tous les fichiers** | Table **MFT** du NTFS et **journal USN** (crate Rust `ntfs-reader`) | — | Tous les noms en quelques secondes, mises à jour en direct. Demande des droits administrateur : un petit service installé une fois, comme Everything. Sans droits : parcours classique des dossiers. |
 | **PDF** | `pdfium-render` (moteur PDF de Chrome) | découpage en passages → vecteurs texte | Ouvrir le PDF **à la bonne page**. Les PDF scannés passent par l'OCR. |
 | **Word, PowerPoint** | Office XML (zip + `quick-xml`), ou `kreuzberg` | vecteurs texte | Les vieux `.doc` sont plus difficiles. |
 | **Excel, ODS** | `calamine` (standard en Rust) | vecteurs texte par feuille ou bloc | |
@@ -61,7 +61,7 @@ Recommandation : **EmbeddingGemma 2 partout**, et garder Qwen3-VL en option si l
 
 ## 4. Le moteur
 
-- **Appli** : Tauri 2 + Rust + React, comme Quiera. On réutilise le lanceur, l'installateur, les mises à jour signées, le site et le pipeline de release.
+- **Appli** : Tauri 2 + Rust + React, avec installateur et mises à jour signées.
 - **Calcul** : **llama.cpp** avec Vulkan (toutes les cartes graphiques) et repli sur le processeur. ONNX Runtime avec Windows ML en alternative (DirectML est en maintenance chez Microsoft, les nouveautés passent par Windows ML).
 - **Stockage** :
   - **SQLite** pour les fichiers, les passages et l'avancement ;
@@ -95,27 +95,27 @@ Recommandation : **EmbeddingGemma 2 partout**, et garder Qwen3-VL en option si l
 
 - **Le modèle pèse 865 Mo** et l'indexation d'un gros disque prend des heures : il faut afficher l'avancement et laisser choisir les dossiers.
 - **Batterie et chaleur** sur portable : pause automatique sur batterie.
-- **llama.cpp et l'image et le son** (ticket #30082) : validé, ça marche (partie 10).
-- **Jeux et autres logiciels** : un jeu lancé (Overwatch) triple le temps de calcul sur la carte graphique. La pause en jeu est indispensable, et toute mesure doit se faire PC au repos.
+- **llama.cpp et l'image et le son** (ticket #30082) : validé, ça marche (partie 9).
+- **Jeux et autres logiciels** : un jeu lancé triple le temps de calcul sur la carte graphique. La pause en jeu est indispensable, et toute mesure doit se faire PC au repos.
 - **DigUp avance vite** : se concentrer sur ce qu'il ne fait pas.
 
 ---
 
-## 7. Le design : celui du lanceur de Quiera, agrandi
+## 7. Le design : une île qui descend du haut de l'écran
 
-On garde **le langage visuel de la recherche de Quiera** : il plaît, il est déjà fait, et il distingue l'appli des fenêtres classiques. On l'adapte à ce qui est nouveau, les **aperçus**.
+Une barre de recherche qui n'est pas une fenêtre classique : une **île noire** qui descend du haut de l'écran, avec des **aperçus**.
 
-### Ce qu'on garde tel quel
+### La base
 
-- **L'île qui descend du haut de l'écran** : une forme noire collée au bord, avec les petites courbes qui la relient à l'écran (« flares »), qui se déforme en douceur à l'ouverture (ressorts Motion). Code : `src/island/geometry.ts`, `springs.ts`, `IslandShell.tsx`.
-- **Les couleurs** (`src/styles/tokens.css`) :
+- **L'île qui descend du haut de l'écran** : une forme noire collée au bord, avec les petites courbes qui la relient à l'écran (« flares »), qui se déforme en douceur à l'ouverture (ressorts Motion). Code : `app/src/ile/geometrie.ts`, `springs.ts`, `IleShell.tsx`.
+- **Les couleurs** (`app/src/styles/tokens.css`) :
   - fond noir pur `#000`, cartes `#121214`, survol `#1a1a1d` ;
   - texte blanc `#fff`, secondaire blanc à 62 %, discret blanc à 36 % ;
   - ligne sélectionnée blanc à 9 % ;
   - curseur de saisie bleu `#0a84ff` ;
   - rouge `#ff6b5e` pour les erreurs.
 - **Les polices** : Segoe UI Variable Text (interface) et Display (titres), celles de Windows 11.
-- **La barre de recherche** (`src/modules/launcher/launcher.css`) :
+- **La barre de recherche** (`app/src/barre/barre.css`) :
   - hauteur 58 px, texte 17 px en semi-gras, icône loupe à gauche ;
   - lignes de résultats de 40 px, coins « squircle » de 13 px ;
   - titre 13 à 14 px avec les lettres trouvées en gras, sous-titre 10,5 px ;
@@ -124,7 +124,7 @@ On garde **le langage visuel de la recherche de Quiera** : il plaît, il est dé
 
 ### Ce qu'on ajoute
 
-- **Plus large quand il y a des aperçus** : 640 px au repos comme dans Quiera, jusqu'à environ 880 px avec le panneau d'aperçu.
+- **Une largeur fixe de 640 px**, l'aperçu prenant la place de la liste.
 - **Des lignes de 52 px avec une miniature** et une ligne « pourquoi » sous le titre, par exemple :
   - « page 4 · …le montant total de la **facture**… » ;
   - « 01:23 · “on parle du **sommeil**” » ;
@@ -137,41 +137,17 @@ On garde **le langage visuel de la recherche de Quiera** : il plaît, il est dé
   - lignes du code.
 
   Espace l'agrandit, comme Coup d'œil sur Mac.
-- **Des filtres en pastilles** sous la barre : Tout · Photos · Documents · Audio · Vidéos · Code. Ils s'activent aussi en tapant « photos », « vidéos »…, comme dans Quiera.
+- **Des filtres en pastilles** sous la barre : Tout · Photos · Documents · Audio · Vidéos · Code. Ils s'activent aussi en tapant « photos », « vidéos »…
 - **Deux groupes de résultats** :
   - **Par le nom** en premier, instantané ;
   - **Par le contenu** ensuite, qui arrive quelques millisecondes après.
 - **L'indexation visible mais discrète** : un petit anneau de progression dans la barre (« 12 400 fichiers sur 58 000 »), en pause sur batterie.
 - **Glisser un résultat** vers une autre appli (Explorateur, Premiere, Discord…) ; Ctrl+C copie le fichier.
-- **Une fenêtre de réglages** au même style que celle de Quiera : barre personnalisée avec seulement Réduire et Fermer, choix des dossiers, du raccourci et du modèle, et l'espace pris par l'index.
-
-### Ce qu'on laisse de côté
-
-Les onglets de l'île, la musique, les notifications et les aperçus système de Quiera : l'appli fait **une seule chose**, chercher.
+- **Des réglages dans l'île** : dossiers, options, raccourci, à propos.
 
 ---
 
-## 8. Ce qu'on reprend du code de Quiera
-
-Le dépôt de Quiera est dans `D:\nom a trouver` (GPL-3.0 ; si la nouvelle appli prend une autre licence, il faudra réécrire ce qu'on reprend ou garder la GPL-3.0).
-
-| Besoin | Dans Quiera |
-|---|---|
-| Barre de recherche, résultats, clavier | `src/modules/launcher/Launcher.tsx`, `results.ts`, `search.ts`, `launcher.css` |
-| Forme et animation de l'île | `src/island/geometry.ts`, `springs.ts`, `IslandShell.tsx`, `island.css` |
-| Couleurs et polices | `src/styles/tokens.css` |
-| Index des noms de fichiers, types de fichiers (« images », « vidéos »…) | `src-tauri/src/files.rs` (`kind_of`, `kind_word`, `parse_query`) |
-| Raccourci clavier global, fenêtre du lanceur | `src-tauri/src/platform/windows/launcher.rs`, `key_tap.rs` |
-| Miniatures Windows | `src-tauri/src/platform/windows/thumbnail.rs` |
-| Ouvrir un fichier ou son dossier | `src-tauri/src/platform/windows/process.rs` |
-| Fenêtre de réglages avec barre personnalisée | `src/settings/SettingsApp.tsx`, `settings.css` |
-| Français et anglais | `src/i18n/` |
-| Publication et mises à jour signées | `.github/workflows/release.yml`, `docs/releases/` |
-| Site (Vite + React, pages pré-rendues, guides, pages légales) | `site/` |
-
----
-
-## 9. Première étape proposée : un prototype de mesure (pas d'interface)
+## 8. Première étape proposée : un prototype de mesure (pas d'interface)
 
 Un petit programme Rust en ligne de commande qui :
 
@@ -186,7 +162,7 @@ Ensuite seulement : l'appli Tauri avec le design ci-dessus, puis l'indexation en
 
 ---
 
-## 10. Résultats du prototype (8 novembre 2026)
+## 9. Résultats du prototype (8 novembre 2026)
 
 Prototype Rust en ligne de commande : `proto/` (`furet-proto index | cherche | stats`). Mesures sur le PC de développement : RTX 4070 Laptop (8 Go), i7-12700H, 16 Go.
 

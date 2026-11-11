@@ -1,4 +1,4 @@
-//! Le raccourci ouvre la barre (repris du lanceur de Quiera) : l'île prend le clavier pendant qu'elle est
+//! Le raccourci ouvre la barre : l'île prend le clavier pendant qu'elle est
 //! ouverte, puis le rend à la fenêtre qui l'avait. Alt+Espace, ou le premier raccourci libre.
 
 use std::ffi::c_void;

@@ -12,7 +12,7 @@ export function IconeRecherche() {
   );
 }
 
-/** La roue dentée des réglages (celle de Quiera). */
+/** La roue dentée des réglages. */
 export function IconeReglages() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" {...trait} strokeWidth={1.9} aria-hidden="true">
